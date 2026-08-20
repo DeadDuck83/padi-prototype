@@ -1,0 +1,9 @@
+.git
+**/.git
+**/.DS_Store
+**/node_modules
+.gitignore
+.assetsignore
+wrangler.jsonc
+uploads/
+.thumbnail
