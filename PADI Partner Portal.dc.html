@@ -3,6 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.logr-in.com/LogRocket.min.js" crossorigin="anonymous"></script>
+<script>
+  window.LogRocket && window.LogRocket.init('hsztbz/padi-prototype');
+  fetch('https://api64.ipify.org?format=json')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d && d.ip && window.LogRocket) {
+        window.LogRocket.identify(String(d.ip), { name: String(d.ip) });
+      }
+    })
+    .catch(function() {});
+</script>
 <script src="./support.js"></script>
 </head>
 <body>
