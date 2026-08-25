@@ -35,6 +35,14 @@
     .brief-steps{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
     .brief-steps li{display:flex;align-items:flex-start;gap:12px;font-size:14px;line-height:1.4;opacity:1;color:var(--color-text)}
     .brief-num{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:var(--color-accent-2-700);color:#f0ebd8}
+    @keyframes priority-spotlight-in{from{opacity:0}to{opacity:1}}
+    .priority-spotlight-backdrop{position:fixed;inset:0;z-index:35;background:color-mix(in srgb,var(--color-accent-2-900) 55%,transparent);animation:priority-spotlight-in 400ms cubic-bezier(.16,1,.3,1)}
+    .priority-spotlight-card{position:relative;z-index:36;box-shadow:0 0 0 6px var(--color-bg),var(--shadow-lg)}
+    .priority-spotlight-tip{position:absolute;left:18px;top:-14px;z-index:1;padding:8px 14px;border-radius:999px;background:var(--color-accent-2-700);color:#f0ebd8;font-size:13px;font-weight:700;line-height:1.3;box-shadow:var(--shadow-md);animation:priority-spotlight-in 400ms cubic-bezier(.16,1,.3,1)}
+    .thanks-links{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+    .thanks-links a{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 14px;border-radius:var(--radius-md);background:var(--color-accent-2-100);text-decoration:none;color:var(--color-accent-2-900);font-weight:700;font-size:14px}
+    .thanks-links a:hover{background:var(--color-accent-2-200);color:var(--color-accent-2-800)}
+    .thanks-links span{font-weight:600;font-size:12.5px;color:var(--color-accent-2-700)}
   </style>
 </helmet>
 <div style="font-family:var(--font-body);color:var(--color-text);min-height:100vh">
@@ -152,7 +160,13 @@
     </div>
     <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:20px;align-items:start">
       <div style="display:flex;flex-direction:column;gap:20px">
-        <div class="card elev-md" style="padding:24px 26px;border:1.5px solid var(--color-accent-300);overflow:visible">
+        <sc-if value="{{ spotlightOn }}" hint-placeholder-val="{{ false }}">
+          <div class="priority-spotlight-backdrop"></div>
+        </sc-if>
+        <div class="{{ priorityCardClass }}" style="padding:24px 26px;border:1.5px solid var(--color-accent-300);overflow:visible" onClick="{{ dismissSpotlight }}">
+          <sc-if value="{{ spotlightOn }}" hint-placeholder-val="{{ false }}">
+            <div class="priority-spotlight-tip" aria-live="polite">Here are your current divers to move forward.</div>
+          </sc-if>
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
             <div>
               <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--color-accent-700)">This week's priority</div>
@@ -926,6 +940,34 @@
   <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
     <div class="demo-toast">{{ toastMsg }}</div>
   </sc-if>
+  <sc-if value="{{ thanksOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" onClick="{{ dismissThanks }}" style="position:fixed;inset:0;z-index:50">
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="thanks-title" style="width:min(460px,100%)" onClick="{{ stopClick }}">
+        <div class="dialog-title" id="thanks-title">Thanks for testing my prototype.</div>
+        <div class="dialog-body" style="opacity:1">
+          <p style="margin:0">Feel free to reach out to me about any feedback.</p>
+          <ul class="thanks-links">
+            <li>
+              <a href="https://derekjmoore.com/" target="_blank" rel="noopener noreferrer">
+                Resume site
+                <span>derekjmoore.com</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://www.linkedin.com/in/derekjmoore1/" target="_blank" rel="noopener noreferrer">
+                LinkedIn
+                <span>linkedin.com/in/derekjmoore1</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="dialog-actions" style="flex-direction:column;align-items:stretch;gap:8px">
+          <button class="btn btn-primary btn-block" onClick="{{ copyEmail }}" style="margin-top:0">{{ copyEmailLabel }}</button>
+          <button class="btn btn-secondary btn-block" onClick="{{ dismissThanks }}" style="margin-top:0">Close</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
 </div>
 </sc-if>
 </div>
@@ -935,6 +977,7 @@ class Component extends DCLogic {
   state = {
     authed: false, section: 'dashboard', diverId: null, filter: 'all', sort: 'closest', search: '', focusStep: null, specOpen: false,
     invites: {}, gOpen: false, gName: '', gSel: {}, gCert: '', gOriginId: null, menuFor: null, briefOpen: false, toast: null,
+    spotlightOn: false, spotlightDone: false, thanksOpen: false, thanksShown: false, emailCopied: false,
     groups: [{ id:'g2', name:'Open Water pool crew', memberIds:['priya','ravi','callum'], goal:'Open Water Diver' }],
     pending: {}, followedUpAt: {}, invitedToGroup: {}, planned: {}
   };
@@ -992,6 +1035,46 @@ class Component extends DCLogic {
 
   persistDemo() {}
 
+  clearSpotlightTimer() {
+    if (this._spotlightTimer) {
+      clearTimeout(this._spotlightTimer);
+      this._spotlightTimer = null;
+    }
+  }
+
+  armSpotlight() {
+    this.clearSpotlightTimer();
+    const self = this;
+    this._spotlightTimer = setTimeout(function() {
+      self._spotlightTimer = null;
+      const s = self.state;
+      const authed = s.authed || (self.props.startSignedIn ?? false);
+      if (!authed || s.section !== 'dashboard' || s.spotlightDone || s.spotlightOn) return;
+      const ready = self.D.filter(function(d) { return d.status === 'ready' && !self.isDone(d.id); });
+      if (!ready.length) return;
+      self.setState({ spotlightOn: true });
+    }, 2000);
+  }
+
+  syncSpotlight() {
+    const authed = this.state.authed || (this.props.startSignedIn ?? false);
+    const onDash = authed && this.state.section === 'dashboard';
+    if (onDash && !this._wasOnDash) {
+      if (!this.state.spotlightDone) this.armSpotlight();
+    }
+    if (!onDash && this._wasOnDash) {
+      this.clearSpotlightTimer();
+      if (this.state.spotlightOn) this.setState({ spotlightOn: false });
+    }
+    this._wasOnDash = onDash;
+  }
+
+  dismissSpotlight() {
+    this.clearSpotlightTimer();
+    if (this.state.spotlightDone && !this.state.spotlightOn) return;
+    this.setState({ spotlightOn: false, spotlightDone: true });
+  }
+
   componentDidMount() {
     try { sessionStorage.removeItem('padi-demo-state'); } catch (e) {}
     const self = this;
@@ -1000,10 +1083,70 @@ class Component extends DCLogic {
     }, 2000);
     const pending = this.state.pending || {};
     Object.keys(pending).forEach(function(id) { if (pending[id]) self.scheduleAccept(id); });
+    this.syncSpotlight();
+  }
+
+  componentDidUpdate() {
+    this.syncSpotlight();
   }
 
   componentWillUnmount() {
     if (this._briefTimer) clearTimeout(this._briefTimer);
+    if (this._thanksTimer) clearTimeout(this._thanksTimer);
+    if (this._copyTimer) clearTimeout(this._copyTimer);
+    this.clearSpotlightTimer();
+  }
+
+  allReadyMoved() {
+    const self = this;
+    return this.D.filter(function(d) { return d.status === 'ready'; }).every(function(d) {
+      return self.isDone(d.id);
+    });
+  }
+
+  maybeThanks() {
+    if (this.state.thanksShown || this.state.thanksOpen) return;
+    if (!this.allReadyMoved()) return;
+    const self = this;
+    if (this._thanksTimer) clearTimeout(this._thanksTimer);
+    this._thanksTimer = setTimeout(function() {
+      self._thanksTimer = null;
+      if (self.state.thanksShown || self.state.thanksOpen) return;
+      self.setState({ thanksOpen: true, thanksShown: true });
+    }, 700);
+  }
+
+  copyEmail() {
+    const email = 'moore8577@gmail.com';
+    const self = this;
+    const markCopied = function() {
+      if (self._copyTimer) clearTimeout(self._copyTimer);
+      self.setState({ emailCopied: true });
+      self._copyTimer = setTimeout(function() {
+        self._copyTimer = null;
+        self.setState({ emailCopied: false });
+      }, 2200);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(email).then(markCopied).catch(function() {
+        self.fallbackCopyEmail(email, markCopied);
+      });
+    } else {
+      this.fallbackCopyEmail(email, markCopied);
+    }
+  }
+
+  fallbackCopyEmail(email, done) {
+    const el = document.createElement('textarea');
+    el.value = email;
+    el.setAttribute('readonly', '');
+    el.style.position = 'fixed';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    el.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(el);
+    if (done) done();
   }
 
   groupGoal(g) {
@@ -1055,7 +1198,7 @@ class Component extends DCLogic {
       pending: Object.assign({}, this.state.pending, { [diverId]: true }),
       invitedToGroup: Object.assign({}, this.state.invitedToGroup, { [diverId]: true }),
       menuFor: null
-    }, function() { self.persistDemo(); self.scheduleAccept(diverId); });
+    }, function() { self.persistDemo(); self.scheduleAccept(diverId); self.maybeThanks(); });
   }
 
   openCreateGroupDive(diverId) {
@@ -1079,10 +1222,11 @@ class Component extends DCLogic {
     this.setState({
       followedUpAt: Object.assign({}, this.state.followedUpAt, { [diverId]: label }),
       menuFor: null
-    }, function() { self.persistDemo(); });
+    }, function() { self.persistDemo(); self.maybeThanks(); });
   }
 
   isDone(id) {
+    if (this.state.followedUpAt && this.state.followedUpAt[id]) return true;
     if (this.state.invitedToGroup && this.state.invitedToGroup[id]) return true;
     const d = this.D.find(x => x.id === id);
     if (!d) return false;
@@ -1118,14 +1262,15 @@ class Component extends DCLogic {
       groupOptions: groupOptions,
       menuOpen: s.menuFor === d.id,
       pending: !!(s.pending && s.pending[d.id]),
-      stopRow: function(e) { if (e && e.stopPropagation) e.stopPropagation(); },
+      stopRow: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); },
       toggleMenu: function(e) {
+        self.dismissSpotlight();
         if (e && e.stopPropagation) e.stopPropagation();
         self.setState({ menuFor: self.state.menuFor === d.id ? null : d.id });
       },
-      inviteToGroup: function(e) { if (e && e.stopPropagation) e.stopPropagation(); self.inviteToGroup(d.id); },
-      createGroupDive: function(e) { if (e && e.stopPropagation) e.stopPropagation(); self.openCreateGroupDive(d.id); },
-      followUp: function(e) { if (e && e.stopPropagation) e.stopPropagation(); self.followUp(d.id); }
+      inviteToGroup: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); self.inviteToGroup(d.id); },
+      createGroupDive: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); self.openCreateGroupDive(d.id); },
+      followUp: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); self.followUp(d.id); }
     });
   }
 
@@ -1426,6 +1571,7 @@ class Component extends DCLogic {
       }, function() {
         self.persistDemo();
         ids.forEach(function(id) { self.scheduleAccept(id); });
+        self.maybeThanks();
       });
     };
 
@@ -1447,6 +1593,13 @@ class Component extends DCLogic {
       showLogin: !authed, showApp: authed,
       briefOpen: !!s.briefOpen,
       dismissBrief: () => this.setState({ briefOpen: false }),
+      spotlightOn: !!s.spotlightOn,
+      priorityCardClass: s.spotlightOn ? 'card elev-md priority-spotlight-card' : 'card elev-md',
+      dismissSpotlight: () => this.dismissSpotlight(),
+      thanksOpen: !!s.thanksOpen,
+      dismissThanks: () => this.setState({ thanksOpen: false }),
+      copyEmail: () => this.copyEmail(),
+      copyEmailLabel: s.emailCopied ? 'Copied moore8577@gmail.com' : 'Copy email address',
       closeMenu: () => { if (s.menuFor) this.setState({ menuFor: null }); },
       hasToast: !!s.toast, toastMsg: s.toast || '',
       signIn: () => this.setState({ authed: true, section: 'dashboard', briefOpen: false }),
