@@ -3,8 +3,11 @@
   "compatibility_date": "2026-08-20",
   "workers_dev": true,
   "preview_urls": true,
+  "logpush": false,
   "observability": {
-    "enabled": false
+    "enabled": false,
+    "logs": { "enabled": false },
+    "traces": { "enabled": false }
   },
   "assets": {
     "directory": "./"

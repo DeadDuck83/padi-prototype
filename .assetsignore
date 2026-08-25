@@ -5,5 +5,7 @@
 .gitignore
 .assetsignore
 wrangler.jsonc
+.wrangler
+**/.wrangler
 uploads/
 .thumbnail
