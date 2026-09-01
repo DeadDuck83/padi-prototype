@@ -111,7 +111,7 @@
             </li>
             <li>
               <span class="brief-num">3</span>
-              <span>Enroll them in their next certification, or send a follow-up.</span>
+              <span>Enroll them in their next certification, or plan a Dive Day.</span>
             </li>
           </ol>
           <p style="margin:14px 0 0">It's all demo data — click freely.</p>
@@ -292,21 +292,34 @@
   </sc-if>
 
   <sc-if value="{{ secGroups }}" hint-placeholder-val="{{ false }}">
-  <div data-screen-label="Groups">
+  <div data-screen-label="Dive Days">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
       <div>
-        <h2 style="font-size:30px;margin:0 0 2px">Groups</h2>
-        <p class="text-muted" style="font-size:14px;margin-bottom:20px">Put divers with the same next step on the same boat.</p>
+        <h2 style="font-size:30px;margin:0 0 2px">Dive Days</h2>
+        <p class="text-muted" style="font-size:14px;margin-bottom:20px">Events with a date, a site, a target cert, and a roster — not a standing list of people.</p>
       </div>
       <button class="btn btn-primary" onClick="{{ openBuilder }}" style="flex:none">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M19 8v6 M22 11h-6"></path></svg>
-        New group
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path></svg>
+        Plan a dive day
       </button>
     </div>
     <sc-if value="{{ gOpen }}" hint-placeholder-val="{{ false }}">
       <div class="card elev-md" style="padding:22px 24px;border:1.5px solid var(--color-accent-300);margin-bottom:22px">
-        <div style="font-size:15px;font-weight:700">New group</div>
-        <label class="text-muted" style="display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin:12px 0 6px">Certification</label>
+        <div style="font-size:15px;font-weight:700">Plan a dive day</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:640px;margin-top:12px">
+          <div class="field"><label>Date</label>
+            <input class="input" placeholder="e.g. Sat, Aug 22" value="{{ gDate }}" onChange="{{ setGDate }}">
+          </div>
+          <div class="field"><label>Location</label>
+            <select class="input" value="{{ gLocation }}" onChange="{{ setGLocation }}" style="cursor:pointer">
+              <option value="">Select location</option>
+              <sc-for list="{{ locationOptions }}" as="loc">
+                <option value="{{ loc.value }}">{{ loc.label }}</option>
+              </sc-for>
+            </select>
+          </div>
+        </div>
+        <label class="text-muted" style="display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin:12px 0 6px">Target certification</label>
         <select class="input" value="{{ gCert }}" onChange="{{ setGCert }}" style="max-width:420px;cursor:pointer">
           <option value="">Select certification</option>
           <option value="Open Water Diver">Open Water Diver</option>
@@ -315,7 +328,7 @@
           <option value="Master Scuba Diver">Master Scuba Diver</option>
           <option value="Divemaster">Divemaster</option>
         </select>
-        <input class="input" placeholder="Group name — e.g. Rescue September cohort" value="{{ gName }}" onChange="{{ setGName }}" style="margin-top:10px;max-width:420px">
+        <input class="input" placeholder="Event name — e.g. Rescue Saturday at Shelly Point" value="{{ gName }}" onChange="{{ setGName }}" style="margin-top:10px;max-width:420px">
         <sc-if value="{{ gCertPicked }}" hint-placeholder-val="{{ false }}">
           <div class="text-muted" style="font-size:12px;margin:12px 0 8px">{{ gMatchLine }}</div>
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
@@ -346,7 +359,7 @@
           <div style="{{ gHintStyle }}">{{ gHint }}</div>
         </sc-if>
         <div style="display:flex;gap:10px;margin-top:14px">
-          <button class="btn btn-primary" onClick="{{ createGroup }}" disabled="{{ gCreateDisabled }}">Create group</button>
+          <button class="btn btn-primary" onClick="{{ createGroup }}" disabled="{{ gCreateDisabled }}">Create dive day</button>
           <button class="btn btn-ghost" onClick="{{ closeBuilder }}" style="font-family:var(--font-body);font-weight:600">Cancel</button>
         </div>
       </div>
@@ -357,7 +370,8 @@
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
             <div>
               <div style="font-family:var(--font-heading);font-size:18px">{{ g.name }}</div>
-              <div class="text-muted" style="font-size:12.5px;margin-top:3px">{{ g.goalLine }}</div>
+              <div class="text-muted" style="font-size:12.5px;margin-top:3px">{{ g.whenWhere }}</div>
+              <div style="font-size:12.5px;font-weight:700;margin-top:4px">{{ g.certLine }}</div>
             </div>
             <span class="tag tag-accent-2" style="flex:none">{{ g.count }}</span>
           </div>
@@ -380,25 +394,27 @@
               </div>
             </sc-for>
           </div>
-          <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 14px;border-radius:var(--radius-md);background:var(--color-accent-2-100);color:var(--color-accent-2-900)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path></svg>
-            <div style="font-size:12.5px;font-weight:600">{{ g.suggest }}</div>
-          </div>
           <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap">
             <sc-if value="{{ g.notPlanned }}" hint-placeholder-val="{{ true }}">
-              <button class="btn btn-secondary" onClick="{{ g.plan }}" style="font-size:12.5px">Plan dive day</button>
+              <button class="btn btn-primary" onClick="{{ g.invite }}" style="font-size:12.5px">Invite to dive day</button>
             </sc-if>
             <sc-if value="{{ g.planned }}" hint-placeholder-val="{{ false }}">
               <span style="display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-800);font-size:12px;font-weight:700">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
-                Dive day penciled in — invites sent to the group
+                Invites sent — demo only, no email
               </span>
             </sc-if>
-            <button class="btn btn-ghost" onClick="{{ g.disband }}" style="font-family:var(--font-body);font-weight:600;font-size:12.5px">Disband</button>
+            <button class="btn btn-ghost" onClick="{{ g.disband }}" style="font-family:var(--font-body);font-weight:600;font-size:12.5px">Cancel dive day</button>
           </div>
         </div>
       </sc-for>
     </div>
+    <sc-if value="{{ groupsEmpty }}" hint-placeholder-val="{{ false }}">
+      <div class="card elev-sm" style="padding:28px 24px;text-align:center">
+        <div style="font-size:15px;font-weight:700">No dive days planned</div>
+        <p class="text-muted" style="font-size:13.5px;margin:6px 0 0">Plan a dive day to put a date, site, target cert, and roster on the calendar.</p>
+      </div>
+    </sc-if>
   </div>
   </sc-if>
 
@@ -558,6 +574,7 @@
             <sc-if value="{{ cur.followedUp }}" hint-placeholder-val="{{ false }}">
               <span style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-800);font-size:13px;font-weight:600">Follow-up sent · {{ cur.followUpLabel }}</span>
             </sc-if>
+            <button class="btn btn-ghost" onClick="{{ cur.createGroupDive }}" style="font-family:var(--font-body);font-weight:600">Plan a dive day</button>
           </div>
         </div>
         </sc-if>
@@ -664,6 +681,7 @@
         <sc-if value="{{ cur.followedUp }}" hint-placeholder-val="{{ false }}">
           <span style="display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 16px;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-800);font-size:13px;font-weight:600;text-align:center">Follow-up sent · {{ cur.followUpLabel }}</span>
         </sc-if>
+        <button class="btn btn-ghost" onClick="{{ cur.createGroupDive }}" style="font-family:var(--font-body);font-weight:600">Plan a dive day</button>
         <button class="btn btn-secondary" onClick="{{ goPrograms }}">See matching course</button>
       </div>
     </div>
@@ -1002,10 +1020,10 @@
 class Component extends DCLogic {
   state = {
     authed: false, section: 'dashboard', diverId: null, filter: 'all', sort: 'closest', search: '', focusStep: null, specOpen: false,
-    invites: {}, gOpen: false, gName: '', gSel: {}, gCert: '', gOriginId: null, menuFor: null, briefOpen: false, toast: null,
+    invites: {}, gOpen: false, gName: '', gSel: {}, gCert: '', gDate: '', gLocation: '', gOriginId: null, menuFor: null, briefOpen: false, toast: null,
     spotlightOn: false, spotlightDone: false, thanksOpen: false, thanksShown: false, emailCopied: false,
     addCert: 'Not yet certified', addGoal: 'Open Water Diver', goalToastFor: null,
-    groups: [{ id:'g2', name:'Open Water pool crew', memberIds:['priya','ravi','callum'], goal:'Open Water Diver' }],
+    groups: [{ id:'g2', name:'Open Water pool crew', date:'Sat, Aug 22', location:'Harbor Street', cert:'Open Water Diver', memberIds:['priya','ravi','callum'] }],
     pending: {}, followedUpAt: {}, invitedToGroup: {}, planned: {}, enrolled: {}
   };
 
@@ -1326,6 +1344,7 @@ class Component extends DCLogic {
   }
 
   groupGoal(g) {
+    if (g.cert) return g.cert;
     if (g.goal) return g.goal;
     const titles = (g.memberIds || []).map(id => {
       const d = this.D.find(x => x.id === id);
@@ -1352,7 +1371,7 @@ class Component extends DCLogic {
       delete pending[diverId];
       const d = self.D.find(x => x.id === diverId);
       const first = d ? d.name.split(' ')[0] : 'Diver';
-      self.setState({ pending: pending, toast: first + ' has accepted Group Dive' }, function() { self.persistDemo(); });
+      self.setState({ pending: pending, toast: first + ' accepted the Dive Day invite' }, function() { self.persistDemo(); });
       setTimeout(function() { self.setState({ toast: null }); }, 4000);
     }, 10000);
   }
@@ -1383,8 +1402,10 @@ class Component extends DCLogic {
     this.setState({
       section: 'groups',
       gOpen: true,
-      gName: d ? (d.next.title + ' group dive') : '',
+      gName: d ? (d.next.title + ' dive day') : '',
       gCert: d ? d.next.title : '',
+      gDate: 'Sat, Aug 22',
+      gLocation: 'Harbor Street',
       gSel: sel,
       gOriginId: diverId,
       menuFor: null
@@ -1512,7 +1533,7 @@ class Component extends DCLogic {
     const all = this.enrich();
     const cur = all.find(d => d.id === s.diverId) || all[0];
 
-    const navDefs = [['dashboard','Dashboard','M3 3h7v9H3z M14 3h7v5h-7z M14 12h7v9h-7z M3 16h7v5H3z'],['divers','Divers','M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75'],['groups','Groups','M18 21a8 8 0 0 0-16 0 M10 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10 M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.31'],['programs','Programs','M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z']];
+    const navDefs = [['dashboard','Dashboard','M3 3h7v9H3z M14 3h7v5h-7z M14 12h7v9h-7z M3 16h7v5H3z'],['divers','Divers','M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75'],['groups','Dive Days','M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z'],['programs','Programs','M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z']];
     const activeSec = (s.section === 'detail' || s.section === 'pathway') ? 'divers' : s.section;
     const navItems = navDefs.map(([id, label, icon]) => ({
       label, icon,
@@ -1723,23 +1744,44 @@ class Component extends DCLogic {
         if (!m) return null;
         return Object.assign({}, m, { pending: !!(s.pending && s.pending[id]) });
       }).filter(Boolean);
-      const titles = members.map(m => m.nextTitle);
-      const goal = g.goal || titles.slice().sort((a,b) => titles.filter(t => t === b).length - titles.filter(t => t === a).length)[0];
-      const shared = titles.length > 0 && titles.every(t => t === goal);
+      const goal = this.groupGoal(g);
       const planned = !!s.planned[g.id];
       const self = this;
+      const whenWhere = [g.date, g.location].filter(Boolean).join(' · ') || 'Date and location TBD';
       return {
         name: g.name, count: members.length + (members.length === 1 ? ' diver' : ' divers'),
-        goalLine: !goal ? 'New group dive' : ((shared ? 'All working toward ' : 'Mostly toward ') + goal),
+        whenWhere: whenWhere,
+        certLine: goal ? ('Target: ' + goal) : 'No target certification',
         members,
         suggest: goalSuggest[goal] || 'Match to an upcoming session',
         planned, notPlanned: !planned,
-        plan: () => self.setState({ planned: Object.assign({}, s.planned, { [g.id]: true }) }, function() { self.persistDemo(); }),
+        invite: () => {
+          const pending = Object.assign({}, s.pending);
+          const invitedToGroup = Object.assign({}, s.invitedToGroup);
+          g.memberIds.forEach(function(id) {
+            pending[id] = true;
+            invitedToGroup[id] = true;
+          });
+          self.setState({
+            planned: Object.assign({}, s.planned, { [g.id]: true }),
+            pending: pending,
+            invitedToGroup: invitedToGroup,
+            toast: 'Demo: invites sent for ' + g.name + ' — no email sent.'
+          }, function() {
+            self.persistDemo();
+            g.memberIds.forEach(function(id) { self.scheduleAccept(id); });
+          });
+          setTimeout(function() {
+            if (self.state.toast && self.state.toast.indexOf('invites sent for') !== -1) self.setState({ toast: null });
+          }, 4000);
+        },
         disband: () => {
           const pending = Object.assign({}, s.pending);
           const invitedToGroup = Object.assign({}, s.invitedToGroup);
+          const plannedNext = Object.assign({}, s.planned);
           g.memberIds.forEach(function(id) { delete pending[id]; delete invitedToGroup[id]; });
-          self.setState({ groups: s.groups.filter(x => x.id !== g.id), pending: pending, invitedToGroup: invitedToGroup }, function() { self.persistDemo(); });
+          delete plannedNext[g.id];
+          self.setState({ groups: s.groups.filter(x => x.id !== g.id), pending: pending, invitedToGroup: invitedToGroup, planned: plannedNext }, function() { self.persistDemo(); });
         }
       };
     });
@@ -1759,32 +1801,22 @@ class Component extends DCLogic {
     let gHint = '', gHintTone = '';
     if (selCount >= 1 && s.gCert) {
       const gatedSel = selDivers.filter(d => d.gated);
-      gHint = 'Group dive for ' + s.gCert + ' — one course, one boat.';
+      gHint = 'Dive day for ' + s.gCert + ' — one course, one boat.';
       if (gatedSel.length) gHint += ' Blockers to clear first: ' + gatedSel.map(d => d.name.split(' ')[0]).join(', ') + '.';
       gHintTone = !gatedSel.length ? 'background:var(--color-accent-2-100);color:var(--color-accent-2-900)' : 'background:var(--color-accent-100);color:var(--color-accent-800)';
     }
     const gHintStyle = 'margin-top:12px;padding:10px 14px;border-radius:var(--radius-md);font-size:12.5px;font-weight:600;' + gHintTone;
     const self = this;
     const createGroup = () => {
-      if (selCount < 1 || !s.gCert) return;
-      const origin = s.gOriginId;
-      const goal = s.gCert || (selDivers[0] && selDivers[0].nextTitle) || '';
-      const name = s.gName.trim() || (goal + ' group dive');
-      const pending = Object.assign({}, s.pending);
-      const invitedToGroup = Object.assign({}, s.invitedToGroup);
-      selDivers.forEach(function(d) {
-        invitedToGroup[d.id] = true;
-        pending[d.id] = true;
-      });
+      if (selCount < 1 || !s.gCert || !s.gDate || !s.gLocation) return;
+      const cert = s.gCert || (selDivers[0] && selDivers[0].nextTitle) || '';
+      const name = s.gName.trim() || (cert + ' dive day');
       const ids = selDivers.map(d => d.id);
       this.setState({
-        groups: s.groups.concat([{ id: 'g' + Date.now(), name: name, memberIds: ids, goal: goal }]),
-        gOpen: false, gName: '', gSel: {}, gCert: '', gOriginId: null,
-        pending: pending, invitedToGroup: invitedToGroup, menuFor: null
+        groups: s.groups.concat([{ id: 'g' + Date.now(), name: name, date: s.gDate, location: s.gLocation, cert: cert, memberIds: ids }]),
+        gOpen: false, gName: '', gSel: {}, gCert: '', gDate: '', gLocation: '', gOriginId: null, menuFor: null
       }, function() {
         self.persistDemo();
-        ids.forEach(function(id) { self.scheduleAccept(id); });
-        self.maybeThanks();
       });
     };
 
@@ -1798,8 +1830,8 @@ class Component extends DCLogic {
         const d = self.D.find(x => x.id === id);
         if (d && (!cert || d.next.title === cert) && s.gSel[id]) nextSel[id] = true;
       });
-      const autoName = !s.gName.trim() || / group dive$/.test(s.gName);
-      self.setState({ gCert: cert, gSel: nextSel, gName: autoName ? (cert ? cert + ' group dive' : '') : s.gName });
+      const autoName = !s.gName.trim() || / dive day$/.test(s.gName);
+      self.setState({ gCert: cert, gSel: nextSel, gName: autoName ? (cert ? cert + ' dive day' : '') : s.gName });
     };
 
     return {
@@ -1823,14 +1855,19 @@ class Component extends DCLogic {
       secDetail: s.section === 'detail', secPathway: s.section === 'pathway',
       secPrograms: s.section === 'programs', secLocations: s.section === 'locations', secResources: s.section === 'resources',
       secGroups: s.section === 'groups',
-      groupCards, gOpen: !!s.gOpen, gName: s.gName, gCert: s.gCert || '',
+      groupCards, groupsEmpty: groupCards.length === 0,
+      gOpen: !!s.gOpen, gName: s.gName, gCert: s.gCert || '',
+      gDate: s.gDate || '', gLocation: s.gLocation || '',
+      locationOptions: locations.map(function(l) { return { value: l.name, label: l.name }; }),
       gCertPicked: !!s.gCert, gCertNeeded: !s.gCert, certOptions, gMatchLine,
       pickEmpty: !!s.gCert && pickRows.length === 0,
-      openBuilder: () => this.setState({ gOpen: true, gOriginId: null, gCert: '', gName: '', gSel: {} }),
-      closeBuilder: () => this.setState({ gOpen: false, gName: '', gSel: {}, gCert: '', gOriginId: null }),
+      openBuilder: () => this.setState({ gOpen: true, gOriginId: null, gCert: '', gName: '', gSel: {}, gDate: '', gLocation: '' }),
+      closeBuilder: () => this.setState({ gOpen: false, gName: '', gSel: {}, gCert: '', gDate: '', gLocation: '', gOriginId: null }),
       setGName: e => this.setState({ gName: e.target.value }),
+      setGDate: e => this.setState({ gDate: e.target.value }),
+      setGLocation: e => this.setState({ gLocation: e.target.value }),
       setGCert, pickRows, hasGHint: !!gHint, gHint, gHintStyle,
-      gCreateDisabled: selCount < 1 || !s.gCert, createGroup,
+      gCreateDisabled: selCount < 1 || !s.gCert || !s.gDate || !s.gLocation, createGroup,
       roster, rosterCount: roster.length, rosterHasRows: roster.length > 0, rosterEmpty: roster.length === 0,
       filterChips, search: s.search, sort: s.sort,
       setSearch: e => this.setState({ search: e.target.value }),
