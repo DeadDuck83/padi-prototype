@@ -111,7 +111,7 @@
             </li>
             <li>
               <span class="brief-num">3</span>
-              <span>Invite them to a group, or send a follow-up message.</span>
+              <span>Enroll them in their next certification, or send a follow-up.</span>
             </li>
           </ol>
           <p style="margin:14px 0 0">It's all demo data — click freely.</p>
@@ -179,7 +179,7 @@
         </sc-if>
         <div class="{{ priorityCardClass }}" style="padding:24px 26px;border:1.5px solid var(--color-accent-300);overflow:visible" onClick="{{ dismissSpotlight }}">
           <sc-if value="{{ spotlightOn }}" hint-placeholder-val="{{ false }}">
-            <div class="priority-spotlight-tip" aria-live="polite">Here are your current divers to move forward.</div>
+            <div class="priority-spotlight-tip" aria-live="polite">Enroll your ready divers in their next certification.</div>
           </sc-if>
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
             <div>
@@ -206,23 +206,20 @@
                   </sc-if>
                 </div>
                 <div class="invite-wrap" onClick="{{ d.stopRow }}">
-                  <sc-if value="{{ d.showInviteMenu }}" hint-placeholder-val="{{ true }}">
-                    <button class="btn btn-secondary" onClick="{{ d.toggleMenu }}" style="flex:none;font-size:12.5px;padding:7px 16px">Invite</button>
-                    <sc-if value="{{ d.menuOpen }}" hint-placeholder-val="{{ false }}">
-                      <div class="invite-menu">
-                        <sc-for list="{{ d.groupOptions }}" as="opt">
-                          <button type="button" onClick="{{ opt.click }}">Invite to {{ opt.name }}</button>
-                        </sc-for>
-                        <button type="button" onClick="{{ d.createGroupDive }}">Create group dive</button>
-                        <button type="button" onClick="{{ d.followUp }}">Follow Up</button>
-                      </div>
-                    </sc-if>
+                  <sc-if value="{{ d.showEnroll }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+                      <button class="btn btn-primary" onClick="{{ d.enroll }}" style="flex:none;font-size:12.5px;padding:7px 16px">Enroll in {{ d.enrollTitle }}</button>
+                      <button class="btn btn-ghost" onClick="{{ d.followUp }}" style="font-family:var(--font-body);font-weight:600;font-size:12px;padding:2px 8px">Follow Up</button>
+                    </div>
                   </sc-if>
-                  <sc-if value="{{ d.invitedToGroup }}" hint-placeholder-val="{{ false }}">
+                  <sc-if value="{{ d.enrolled }}" hint-placeholder-val="{{ false }}">
                     <span style="flex:none;display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-800);font-size:12px;font-weight:700">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
-                      Invited to group dive
+                      {{ d.enrollChip }}
                     </span>
+                  </sc-if>
+                  <sc-if value="{{ d.followedUp }}" hint-placeholder-val="{{ false }}">
+                    <span style="flex:none;display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-800);font-size:12px;font-weight:700">Follow-up sent · {{ d.followUpLabel }}</span>
                   </sc-if>
                 </div>
               </div>
@@ -547,27 +544,15 @@
             </sc-for>
           </div>
           <div style="display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap">
-            <sc-if value="{{ cur.showInviteMenu }}" hint-placeholder-val="{{ true }}">
-              <div class="invite-wrap">
-                <button class="btn btn-primary" onClick="{{ cur.toggleMenu }}">Invite
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13 M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
-                </button>
-                <sc-if value="{{ cur.menuOpen }}" hint-placeholder-val="{{ false }}">
-                  <div class="invite-menu" style="left:0;right:auto">
-                    <sc-for list="{{ cur.groupOptions }}" as="opt">
-                      <button type="button" onClick="{{ opt.click }}">Invite to {{ opt.name }}</button>
-                    </sc-for>
-                    <button type="button" onClick="{{ cur.createGroupDive }}">Create group dive</button>
-                    <button type="button" onClick="{{ cur.followUp }}">Follow Up</button>
-                  </div>
-                </sc-if>
-              </div>
-              <span class="text-muted" style="font-size:11.5px">{{ curFirst }} gets a notification and confirms the spot.</span>
+            <sc-if value="{{ cur.showEnroll }}" hint-placeholder-val="{{ true }}">
+              <button class="btn btn-primary" onClick="{{ cur.enroll }}">Enroll in {{ cur.enrollTitle }}</button>
+              <button class="btn btn-ghost" onClick="{{ cur.followUp }}" style="font-family:var(--font-body);font-weight:600">Follow Up</button>
+              <span class="text-muted" style="font-size:11.5px">Demo only — no email is sent.</span>
             </sc-if>
-            <sc-if value="{{ cur.invitedToGroup }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ cur.enrolled }}" hint-placeholder-val="{{ false }}">
               <span style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-800);font-size:13px;font-weight:600">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
-                Invited to group dive
+                {{ cur.enrollChip }}
               </span>
             </sc-if>
             <sc-if value="{{ cur.followedUp }}" hint-placeholder-val="{{ false }}">
@@ -665,35 +650,21 @@
         </div>
       </div>
       <div style="flex:none;display:flex;flex-direction:column;gap:8px;align-items:stretch;max-width:300px">
-        <sc-if value="{{ cur.showInviteMenu }}" hint-placeholder-val="{{ true }}">
-          <div class="invite-wrap">
-            <button class="btn btn-primary btn-block" onClick="{{ cur.toggleMenu }}">Invite
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13 M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
-            </button>
-            <sc-if value="{{ cur.menuOpen }}" hint-placeholder-val="{{ false }}">
-              <div class="invite-menu">
-                <sc-for list="{{ cur.groupOptions }}" as="opt">
-                  <button type="button" onClick="{{ opt.click }}">Invite to {{ opt.name }}</button>
-                </sc-for>
-                <button type="button" onClick="{{ cur.createGroupDive }}">Create group dive</button>
-                <button type="button" onClick="{{ cur.followUp }}">Follow Up</button>
-              </div>
-            </sc-if>
-          </div>
+        <sc-if value="{{ cur.showEnroll }}" hint-placeholder-val="{{ true }}">
+          <button class="btn btn-primary btn-block" onClick="{{ cur.enroll }}">Enroll in {{ cur.enrollTitle }}</button>
+          <button class="btn btn-ghost" onClick="{{ cur.followUp }}" style="font-family:var(--font-body);font-weight:600">Follow Up</button>
+          <span class="text-muted" style="font-size:11px;text-align:center">Demo only — no email is sent.</span>
         </sc-if>
-        <sc-if value="{{ cur.invitedToGroup }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ cur.enrolled }}" hint-placeholder-val="{{ false }}">
           <span style="display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 16px;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-800);font-size:13px;font-weight:600;text-align:center">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M20 6L9 17l-5-5"></path></svg>
-            Invited to group dive
+            {{ cur.enrollChip }}
           </span>
         </sc-if>
         <sc-if value="{{ cur.followedUp }}" hint-placeholder-val="{{ false }}">
           <span style="display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 16px;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-800);font-size:13px;font-weight:600;text-align:center">Follow-up sent · {{ cur.followUpLabel }}</span>
         </sc-if>
         <button class="btn btn-secondary" onClick="{{ goPrograms }}">See matching course</button>
-        <sc-if value="{{ cur.showInviteMenu }}" hint-placeholder-val="{{ true }}">
-          <span class="text-muted" style="font-size:11px;text-align:center">{{ curFirst }} confirms in their PADI app</span>
-        </sc-if>
       </div>
     </div>
     </sc-if>
@@ -981,11 +952,11 @@
               </sc-for>
             </select>
           </div>
-          <div class="text-muted" style="font-size:12px;line-height:1.5">The diver gets an invitation to join Reef Runners. Once they accept, their PADI certification history, logged dives and medical status sync automatically.</div>
+          <div class="text-muted" style="font-size:12px;line-height:1.5">The diver is added to the Reef Runners roster. Once they accept, their PADI certification history, logged dives and medical status sync automatically.</div>
         </div>
         <div class="dialog-actions">
           <button class="btn btn-secondary" onClick="{{ closeAddDiver }}">Cancel</button>
-          <button class="btn btn-primary" onClick="{{ closeAddDiver }}">Send invitation
+          <button class="btn btn-primary" onClick="{{ closeAddDiver }}">Add to roster
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13 M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
           </button>
         </div>
@@ -1035,7 +1006,7 @@ class Component extends DCLogic {
     spotlightOn: false, spotlightDone: false, thanksOpen: false, thanksShown: false, emailCopied: false,
     addCert: 'Not yet certified', addGoal: 'Open Water Diver', goalToastFor: null,
     groups: [{ id:'g2', name:'Open Water pool crew', memberIds:['priya','ravi','callum'], goal:'Open Water Diver' }],
-    pending: {}, followedUpAt: {}, invitedToGroup: {}, planned: {}
+    pending: {}, followedUpAt: {}, invitedToGroup: {}, planned: {}, enrolled: {}
   };
 
   D = [
@@ -1113,6 +1084,36 @@ class Component extends DCLogic {
   shortCert(name) {
     if (name === 'Open Water student' || name === 'Not yet certified') return 'Open Water';
     return name || '';
+  }
+
+  enrollShort(title) {
+    const map = {
+      'Open Water Diver': 'Open Water',
+      'Advanced Open Water': 'Advanced',
+      'Rescue Diver': 'Rescue',
+      'Master Scuba Diver': 'Master Scuba',
+      'Divemaster': 'Divemaster'
+    };
+    return map[title] || title;
+  }
+
+  enroll(diverId) {
+    const d = this.D.find(function(x) { return x.id === diverId; });
+    if (!d) return;
+    const title = d.next.title;
+    const first = d.name.split(' ')[0];
+    const self = this;
+    this.setState({
+      enrolled: Object.assign({}, this.state.enrolled, { [diverId]: title }),
+      menuFor: null,
+      toast: 'Demo: ' + first + ' is enrolled in ' + title + ' — no email sent.'
+    }, function() {
+      self.persistDemo();
+      self.maybeThanks();
+    });
+    setTimeout(function() {
+      if (self.state.toast && self.state.toast.indexOf('is enrolled in') !== -1) self.setState({ toast: null });
+    }, 4000);
   }
 
   setDiverGoal(id, goal) {
@@ -1402,17 +1403,14 @@ class Component extends DCLogic {
 
   isDone(id) {
     if (this.state.followedUpAt && this.state.followedUpAt[id]) return true;
-    if (this.state.invitedToGroup && this.state.invitedToGroup[id]) return true;
-    const d = this.D.find(x => x.id === id);
-    if (!d) return false;
-    const title = d.next.title;
-    return (this.state.groups || []).some(g => (g.memberIds || []).indexOf(id) !== -1 && this.groupGoal(g) === title);
+    if (this.state.enrolled && this.state.enrolled[id]) return true;
+    return false;
   }
 
   attachInvite(d) {
     const s = this.state;
     const self = this;
-    const title = d.nextTitle || d.next.title;
+    const title = d.next.title;
     const groupOptions = this.matchingGroups(title).map(function(g) {
       return {
         id: g.id,
@@ -1423,17 +1421,21 @@ class Component extends DCLogic {
         }
       };
     });
-    const invitedToGroup = this.isDone(d.id);
-    const followedUp = !!(s.followedUpAt && s.followedUpAt[d.id]) && !invitedToGroup;
-    const showInviteMenu = !invitedToGroup;
-    const hasMatch = groupOptions.length > 0;
+    const enrolledTitle = s.enrolled && s.enrolled[d.id];
+    const enrolled = !!enrolledTitle;
+    const followedUp = !!(s.followedUpAt && s.followedUpAt[d.id]) && !enrolled;
+    const showEnroll = !enrolled && !followedUp && !d.goalReached;
     return Object.assign({}, d, {
-      invitedToGroup: invitedToGroup,
+      enrolled: enrolled,
+      enrollTitle: title,
+      enrollChip: 'Enrolled in ' + this.enrollShort(enrolledTitle || title),
+      invitedToGroup: !!(s.invitedToGroup && s.invitedToGroup[d.id]),
       followedUp: followedUp,
       followUpLabel: (s.followedUpAt && s.followedUpAt[d.id]) || '',
-      showInviteMenu: showInviteMenu,
-      hasMatch: hasMatch,
-      noMatch: !hasMatch,
+      showEnroll: showEnroll,
+      showInviteMenu: showEnroll,
+      hasMatch: groupOptions.length > 0,
+      noMatch: groupOptions.length === 0,
       groupOptions: groupOptions,
       menuOpen: s.menuFor === d.id,
       pending: !!(s.pending && s.pending[d.id]),
@@ -1443,6 +1445,7 @@ class Component extends DCLogic {
         if (e && e.stopPropagation) e.stopPropagation();
         self.setState({ menuFor: self.state.menuFor === d.id ? null : d.id });
       },
+      enroll: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); self.enroll(d.id); },
       inviteToGroup: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); self.inviteToGroup(d.id); },
       createGroupDive: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); self.openCreateGroupDive(d.id); },
       followUp: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); self.followUp(d.id); }
