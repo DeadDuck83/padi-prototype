@@ -99,7 +99,7 @@
       <div class="dialog" role="dialog" aria-modal="true" style="width:min(480px,100%)">
         <div class="dialog-title">Take it for a spin.</div>
         <div class="dialog-body" style="opacity:1">
-          <p style="margin:0">Your job this week: move your three ready-to-advance divers forward.</p>
+          <p style="margin:0">Your job this week: move your ready-to-advance divers forward.</p>
           <ol class="brief-steps">
             <li>
               <span class="brief-num">1</span>
@@ -241,7 +241,7 @@
         <div class="card elev-sm" style="padding:20px 22px">
           <div style="display:flex;align-items:center;gap:8px">
             <div style="font-size:15px;font-weight:700">Needs attention</div>
-            <span class="tag tag-accent" style="font-size:11px;padding:3px 10px">4</span>
+            <span class="tag tag-accent" style="font-size:11px;padding:3px 10px">{{ attentionCount }}</span>
           </div>
           <div style="display:flex;flex-direction:column">
             <sc-for list="{{ attention }}" as="a" hint-placeholder-count="3">
@@ -500,10 +500,18 @@
       <div style="width:58px;height:58px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;background:{{ cur.avBg }};color:{{ cur.avFg }}">{{ cur.initials }}</div>
       <div style="flex:1">
         <h2 style="font-size:27px;margin:0">{{ cur.name }}</h2>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
           <span class="tag tag-accent-2">{{ cur.cert }}</span>
           <span class="{{ cur.tagCls }}">{{ cur.statusLabel }}</span>
           <span class="text-muted" style="font-size:12px">{{ cur.since }}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <span style="font-size:13px;font-weight:700">Goal: {{ cur.goal }}</span>
+          <select class="input" value="{{ cur.goal }}" onChange="{{ setCurGoal }}" style="width:auto;min-height:32px;padding:4px 12px;font-size:12.5px;cursor:pointer">
+            <sc-for list="{{ certOptions }}" as="opt">
+              <option value="{{ opt.value }}">{{ opt.label }}</option>
+            </sc-for>
+          </select>
         </div>
       </div>
       <button class="btn btn-primary" onClick="{{ openCurPathway }}">View certification pathway
@@ -512,8 +520,22 @@
     </div>
     <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:start">
       <div style="display:flex;flex-direction:column;gap:20px">
+        <sc-if value="{{ cur.goalReached }}" hint-placeholder-val="{{ false }}">
+        <div class="card elev-md" style="padding:22px 24px;background:var(--color-accent-2-100)">
+          <div class="card-kicker">Goal reached</div>
+          <div style="font-family:var(--font-heading);font-size:24px;line-height:1.15">{{ curFirst }} reached their goal</div>
+          <div style="font-size:14px;font-weight:600;color:var(--color-accent-2-800);margin-top:4px">{{ cur.goal }} — set their next one?</div>
+          <p class="text-muted" style="font-size:13.5px;margin:10px 0 0;max-width:42ch">Most divers aren't aiming for the top of the ladder. Pick the certification they actually want next.</p>
+          <select class="input" value="{{ cur.goal }}" onChange="{{ setCurGoal }}" style="margin-top:14px;max-width:320px;cursor:pointer">
+            <sc-for list="{{ certOptions }}" as="opt">
+              <option value="{{ opt.value }}">{{ opt.label }}</option>
+            </sc-for>
+          </select>
+        </div>
+        </sc-if>
+        <sc-if value="{{ cur.notGoalReached }}" hint-placeholder-val="{{ true }}">
         <div class="card elev-md" style="padding:22px 24px;background:var(--color-accent-100)">
-          <div class="card-kicker">Next step</div>
+          <div class="card-kicker">Next step toward {{ cur.goal }}</div>
           <div style="font-family:var(--font-heading);font-size:24px;line-height:1.15">{{ cur.nextTitle }}</div>
           <div style="font-size:14px;font-weight:600;color:var(--color-accent-800)">{{ cur.nextGap }}</div>
           <div style="display:flex;flex-direction:column;gap:7px;margin-top:6px">
@@ -553,6 +575,7 @@
             </sc-if>
           </div>
         </div>
+        </sc-if>
         <sc-if value="{{ cur.course }}" hint-placeholder-val="{{ false }}">
         <div class="card elev-sm" style="padding:20px 22px">
           <div style="display:flex;align-items:baseline;justify-content:space-between">
@@ -620,7 +643,16 @@
       <h2 style="font-size:30px;margin:0">Certification pathway</h2>
       <span class="tag tag-accent-2">{{ cur.name }} · {{ cur.cert }}</span>
     </div>
-    <p class="text-muted" style="font-size:14px;margin-bottom:20px">One clear next step — the full ladder a click away.</p>
+    <div style="font-size:14px;font-weight:700;margin:0 0 8px">Goal: {{ cur.goal }}</div>
+    <p class="text-muted" style="font-size:14px;margin-bottom:20px">Progress fills toward their goal — the rest of the ladder stays in view.</p>
+    <sc-if value="{{ cur.goalReached }}" hint-placeholder-val="{{ false }}">
+    <div class="card elev-md" style="padding:24px 26px;background:var(--color-accent-2-100);margin-bottom:20px">
+      <div class="card-kicker">Goal reached</div>
+      <div style="font-family:var(--font-heading);font-size:28px;line-height:1.1;margin:4px 0 6px">{{ curFirst }} reached their goal</div>
+      <div style="font-size:14.5px;font-weight:600;color:var(--color-accent-2-800)">{{ cur.goal }} — set their next one?</div>
+    </div>
+    </sc-if>
+    <sc-if value="{{ cur.notGoalReached }}" hint-placeholder-val="{{ true }}">
     <div class="card elev-md" style="padding:24px 26px;background:var(--color-accent-100);flex-direction:row;gap:24px;align-items:center">
       <div style="flex:1">
         <div class="card-kicker">Recommended next step</div>
@@ -664,6 +696,7 @@
         </sc-if>
       </div>
     </div>
+    </sc-if>
 
     <div class="card elev-sm" style="padding:24px 26px;margin-top:20px">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
@@ -686,6 +719,7 @@
                 <div class="text-muted" style="font-size:11px;line-height:1.35">{{ st.sub }}</div>
                 <sc-if value="{{ st.isNext }}" hint-placeholder-val="{{ false }}"><span class="tag tag-accent">Recommended</span></sc-if>
                 <sc-if value="{{ st.isCurrent }}" hint-placeholder-val="{{ false }}"><span class="tag tag-accent">In progress</span></sc-if>
+                <sc-if value="{{ st.isGoal }}" hint-placeholder-val="{{ false }}"><span class="tag tag-accent-2">Goal</span></sc-if>
               </div>
             </sc-for>
           </div>
@@ -936,8 +970,15 @@
           </div>
           <div class="field"><label>Email or phone</label><input class="input" placeholder="kai@example.com"></div>
           <div class="field"><label>Current certification</label>
-            <select class="input" style="cursor:pointer">
+            <select class="input" value="{{ addCert }}" onChange="{{ setAddCert }}" style="cursor:pointer">
               <option>Not yet certified</option><option>Open Water Diver</option><option>Advanced Open Water</option><option>Rescue Diver</option><option>Master Scuba Diver</option><option>Divemaster</option>
+            </select>
+          </div>
+          <div class="field"><label>Goal certification</label>
+            <select class="input" value="{{ addGoal }}" onChange="{{ setAddGoal }}" style="cursor:pointer">
+              <sc-for list="{{ certOptions }}" as="opt">
+                <option value="{{ opt.value }}">{{ opt.label }}</option>
+              </sc-for>
             </select>
           </div>
           <div class="text-muted" style="font-size:12px;line-height:1.5">The diver gets an invitation to join Reef Runners. Once they accept, their PADI certification history, logged dives and medical status sync automatically.</div>
@@ -992,43 +1033,44 @@ class Component extends DCLogic {
     authed: false, section: 'dashboard', diverId: null, filter: 'all', sort: 'closest', search: '', focusStep: null, specOpen: false,
     invites: {}, gOpen: false, gName: '', gSel: {}, gCert: '', gOriginId: null, menuFor: null, briefOpen: false, toast: null,
     spotlightOn: false, spotlightDone: false, thanksOpen: false, thanksShown: false, emailCopied: false,
+    addCert: 'Not yet certified', addGoal: 'Open Water Diver', goalToastFor: null,
     groups: [{ id:'g2', name:'Open Water pool crew', memberIds:['priya','ravi','callum'], goal:'Open Water Diver' }],
     pending: {}, followedUpAt: {}, invitedToGroup: {}, planned: {}
   };
 
   D = [
-    { id:'theo', name:'Theo Ramírez', initials:'TR', cert:'Rescue Diver', nodesDone:3, frac:0.85, status:'ready', dives:47, specs:['Deep','Wreck','Enriched Air','U/W Navigation'], med:'current', medText:'Current · to Mar 2027', efrOk:true, efrText:'Current · Nov 2025', since:'Member since 2021', barLabel:'Rescue → Master Scuba', course:null, sortClose:1,
+    { id:'theo', name:'Theo Ramírez', initials:'TR', cert:'Rescue Diver', goal:'Master Scuba Diver', nodesDone:3, frac:0.85, status:'ready', dives:47, specs:['Deep','Wreck','Enriched Air','U/W Navigation'], med:'current', medText:'Current · to Mar 2027', efrOk:true, efrText:'Current · Nov 2025', since:'Member since 2021', barLabel:'Rescue → Master Scuba', course:null, sortClose:1,
       next:{ title:'Master Scuba Diver', gap:'1 specialty · 3 dives to go', cta:'Invite to Night Diver — Fri 19:00, Shelly Point', blockers:[{t:'Rescue Diver',met:true},{t:'EFR current',met:true},{t:'4 of 5 PADI specialties',met:false},{t:'47 of 50 logged dives',met:false}] },
       activity:[['Aug 9','Logged 2 dives — Moray Gardens Reef'],['Jul 26','Earned U/W Navigation specialty'],['Jul 12','Logged 3 dives — Shelly Point Cove'],['Jun 30','Enrolled in Night Diver specialty']] },
-    { id:'sofia', name:'Sofia Marchetti', initials:'SM', cert:'Advanced Open Water', nodesDone:2, frac:0.8, status:'ready', dives:33, specs:['Enriched Air','Night'], med:'current', medText:'Current · to Jan 2027', efrOk:true, efrText:'Current · Feb 2026', since:'Member since 2022', barLabel:'Advanced → Rescue', course:null, sortClose:2,
+    { id:'sofia', name:'Sofia Marchetti', initials:'SM', cert:'Advanced Open Water', goal:'Rescue Diver', nodesDone:2, frac:0.8, status:'ready', dives:33, specs:['Enriched Air','Night'], med:'current', medText:'Current · to Jan 2027', efrOk:true, efrText:'Current · Feb 2026', since:'Member since 2022', barLabel:'Advanced → Rescue', course:null, sortClose:2,
       next:{ title:'Rescue Diver', gap:'all prerequisites met', cta:'Invite to Rescue Diver — starts Sep 5', blockers:[{t:'Advanced Open Water',met:true},{t:'EFR current',met:true}] },
       activity:[['Aug 2','Logged 2 dives — Shelly Point Cove'],['Jul 18','EFR refresher completed'],['Jun 21','Earned Night specialty']] },
-    { id:'maya', name:'Maya Lindqvist', initials:'ML', cert:'Advanced Open Water', nodesDone:2, frac:0.6, status:'ready', dives:26, specs:['U/W Navigation'], med:'current', medText:'Current · to Oct 2026', efrOk:false, efrText:'Lapsed · Jun 2026', since:'Member since 2023', barLabel:'Advanced → Rescue', gate:'Gate: EFR lapsed — blocks Rescue', course:null, sortClose:3,
+    { id:'maya', name:'Maya Lindqvist', initials:'ML', cert:'Advanced Open Water', goal:'Advanced Open Water', nodesDone:2, frac:1, status:'certified', dives:26, specs:['U/W Navigation'], med:'current', medText:'Current · to Oct 2026', efrOk:false, efrText:'Lapsed · Jun 2026', since:'Member since 2023', barLabel:'Goal reached · Advanced Open Water', course:null, sortClose:3,
       next:{ title:'Rescue Diver', gap:'needs current EFR', cta:'Invite to EFR — 1-day course, Aug 23', blockers:[{t:'Advanced Open Water',met:true},{t:'EFR current',met:false}] },
       activity:[['Jul 30','Logged 1 dive — Shelly Point Cove'],['Jun 14','EFR certification expired'],['May 25','Logged 3 dives — Moray Gardens Reef']] },
-    { id:'jonas', name:'Jonas Weber', initials:'JW', cert:'Open Water Diver', nodesDone:1, frac:0.3, status:'certified', dives:9, specs:[], med:'current', medText:'Current · to Apr 2027', efrOk:false, efrText:'Not yet taken', since:'Member since 2025', barLabel:'Open Water → Advanced', course:null, sortClose:4,
+    { id:'jonas', name:'Jonas Weber', initials:'JW', cert:'Open Water Diver', goal:'Advanced Open Water', nodesDone:1, frac:0.3, status:'certified', dives:9, specs:[], med:'current', medText:'Current · to Apr 2027', efrOk:false, efrText:'Not yet taken', since:'Member since 2025', barLabel:'Open Water → Advanced', course:null, sortClose:4,
       next:{ title:'Advanced Open Water', gap:'5 adventure dives — one weekend', cta:'Suggest AOW — next start Aug 29', blockers:[{t:'Open Water Diver',met:true},{t:'5 adventure dives',met:false}] },
       activity:[['Aug 3','Logged 2 dives — Shelly Point Cove'],['Jul 6','Certified: Open Water Diver'],['Jun 8','Open water dives 1–2 completed']] },
-    { id:'amara', name:'Amara Okafor', initials:'AO', cert:'Rescue Diver', nodesDone:3, frac:0.4, status:'progress', dives:31, specs:['Enriched Air','Peak Perf. Buoyancy'], med:'current', medText:'Current · to Dec 2026', efrOk:true, efrText:'Current · Sep 2025', since:'Member since 2020', barLabel:'Rescue → Master Scuba', sortClose:5,
+    { id:'amara', name:'Amara Okafor', initials:'AO', cert:'Rescue Diver', goal:'Master Scuba Diver', nodesDone:3, frac:0.4, status:'progress', dives:31, specs:['Enriched Air','Peak Perf. Buoyancy'], med:'current', medText:'Current · to Dec 2026', efrOk:true, efrText:'Current · Sep 2025', since:'Member since 2020', barLabel:'Rescue → Master Scuba', sortClose:5,
       course:{ name:'Deep Diver specialty', done:2, of:4, next:'Dive 3 of 4 — Sat, Moray Gardens Reef' },
       next:{ title:'Master Scuba Diver', gap:'3 specialties · 19 dives to go', cta:'Continue Deep Diver — Sat', blockers:[{t:'Rescue Diver',met:true},{t:'EFR current',met:true},{t:'2 of 5 PADI specialties',met:false},{t:'31 of 50 logged dives',met:false}] },
       activity:[['Aug 10','Deep Diver — dive 2 of 4 completed'],['Jul 27','Enrolled in Deep Diver specialty'],['Jul 5','Logged 2 dives — Moray Gardens Reef']] },
-    { id:'dex', name:'Dex Fontaine', initials:'DF', cert:'Rescue Diver', nodesDone:3, frac:0.5, status:'progress', dives:64, specs:['Deep','Night','Search & Recovery'], med:'soon', medText:'Expires Sep 4', efrOk:true, efrText:'Current · Jan 2026', since:'Member since 2019', barLabel:'Pro track → Divemaster', gate:'Gate: medical expires Sep 4', sortClose:6,
+    { id:'dex', name:'Dex Fontaine', initials:'DF', cert:'Rescue Diver', goal:'Divemaster', nodesDone:3, frac:0.5, status:'progress', dives:64, specs:['Deep','Night','Search & Recovery'], med:'soon', medText:'Expires Sep 4', efrOk:true, efrText:'Current · Jan 2026', since:'Member since 2019', barLabel:'Pro track → Divemaster', gate:'Gate: medical expires Sep 4', sortClose:6,
       course:{ name:'Divemaster', done:3, of:8, next:'Skills workshop — Thu 17:30, Harbor Street pool' },
       next:{ title:'Divemaster', gap:'5 of 8 modules remaining', cta:'Remind: renew medical before Sep 4', blockers:[{t:'Rescue Diver + 40 dives',met:true},{t:'EFR current',met:true},{t:'Dive medical (expires Sep 4)',met:false},{t:'Modules 4–8',met:false}] },
       activity:[['Aug 12','Divemaster module 3 — mapping project'],['Aug 1','Assisted OW confined water session'],['Jul 20','Logged 4 dives — Moray Gardens Reef']] },
-    { id:'priya', name:'Priya Nair', initials:'PN', cert:'Open Water student', nodesDone:0, frac:0.6, status:'progress', dives:0, specs:[], med:'current', medText:'Current · to Jul 2027', efrOk:false, efrText:'Not yet taken', since:'Member since 2026', barLabel:'Open Water in progress', sortClose:7,
+    { id:'priya', name:'Priya Nair', initials:'PN', cert:'Open Water student', goal:'Open Water Diver', nodesDone:0, frac:0.6, status:'progress', dives:0, specs:[], med:'current', medText:'Current · to Jul 2027', efrOk:false, efrText:'Not yet taken', since:'Member since 2026', barLabel:'Open Water in progress', sortClose:7,
       course:{ name:'Open Water Diver', done:3, of:5, next:'Confined water 4 of 5 — Tue 18:00, Harbor Street pool' },
       next:{ title:'Open Water Diver', gap:'2 pool sessions + 4 open-water dives', cta:'Next: confined water 4 — Tue 18:00', blockers:[{t:'Knowledge development',met:true},{t:'Confined water 3 of 5',met:false},{t:'Open-water dives 0 of 4',met:false}] },
       activity:[['Aug 11','Confined water 3 of 5 completed'],['Aug 4','Confined water 2 of 5 completed'],['Jul 28','Knowledge development completed']] },
-    { id:'ravi', name:'Ravi Shah', initials:'RS', cert:'Open Water student', nodesDone:0, frac:0.3, status:'progress', dives:0, specs:[], med:'current', medText:'Current · to Jun 2027', efrOk:false, efrText:'Not yet taken', since:'Member since 2026', barLabel:'Open Water in progress', sortClose:8,
+    { id:'ravi', name:'Ravi Shah', initials:'RS', cert:'Open Water student', goal:'Open Water Diver', nodesDone:0, frac:0.3, status:'progress', dives:0, specs:[], med:'current', medText:'Current · to Jun 2027', efrOk:false, efrText:'Not yet taken', since:'Member since 2026', barLabel:'Open Water in progress', sortClose:8,
       course:{ name:'Open Water Diver', done:1, of:5, next:'First pool session — Sat 09:00, Bayview Aquatic Center' },
       next:{ title:'Open Water Diver', gap:'knowledge review + 5 pool sessions', cta:'Next: first pool session — Sat 09:00', blockers:[{t:'Knowledge development',met:true},{t:'Confined water 0 of 5',met:false},{t:'Open-water dives 0 of 4',met:false}] },
       activity:[['Aug 8','Knowledge development completed'],['Aug 1','Enrolled in Open Water Diver']] },
-    { id:'lena', name:'Lena Vogel', initials:'LV', cert:'Advanced Open Water', nodesDone:2, frac:0.5, status:'stalled', dives:41, specs:['Wreck'], med:'lapsed', medText:'Lapsed · May 2026', efrOk:false, efrText:'Lapsed · Mar 2026', since:'Member since 2021', barLabel:'Advanced → Rescue', gate:'Gate: medical + EFR lapsed', course:null, sortClose:9,
+    { id:'lena', name:'Lena Vogel', initials:'LV', cert:'Advanced Open Water', goal:'Rescue Diver', nodesDone:2, frac:0.5, status:'stalled', dives:41, specs:['Wreck'], med:'lapsed', medText:'Lapsed · May 2026', efrOk:false, efrText:'Lapsed · Mar 2026', since:'Member since 2021', barLabel:'Advanced → Rescue', gate:'Gate: medical + EFR lapsed', course:null, sortClose:9,
       next:{ title:'Rescue Diver', gap:'medical + EFR lapsed', cta:'Reach out — renew medical & EFR', blockers:[{t:'Advanced Open Water',met:true},{t:'Dive medical current',met:false},{t:'EFR current',met:false}] },
       activity:[['May 18','Dive medical expired'],['Apr 12','Logged 2 dives — Shelly Point Cove'],['Mar 2','EFR certification expired']] },
-    { id:'callum', name:'Callum Doyle', initials:'CD', cert:'Open Water student', nodesDone:0, frac:0.4, status:'stalled', dives:0, specs:[], med:'current', medText:'Current · to Nov 2026', efrOk:false, efrText:'Not yet taken', since:'Member since 2026', barLabel:'Open Water — paused', sortClose:10,
+    { id:'callum', name:'Callum Doyle', initials:'CD', cert:'Open Water student', goal:'Open Water Diver', nodesDone:0, frac:0.4, status:'stalled', dives:0, specs:[], med:'current', medText:'Current · to Nov 2026', efrOk:false, efrText:'Not yet taken', since:'Member since 2026', barLabel:'Open Water — paused', sortClose:10,
       course:{ name:'Open Water Diver', done:2, of:5, next:'Paused — last activity Jun 27 (7 weeks ago)' },
       next:{ title:'Open Water Diver', gap:'stalled at confined water 2 of 5', cta:'Reach out — offer a refresher pool session', blockers:[{t:'Knowledge development',met:true},{t:'Confined water 2 of 5 — paused',met:false},{t:'Open-water dives 0 of 4',met:false}] },
       activity:[['Jun 27','Confined water 2 of 5 completed'],['Jun 20','Confined water 1 of 5 completed'],['Jun 10','Enrolled in Open Water Diver']] }
@@ -1045,7 +1087,73 @@ class Component extends DCLogic {
 
   CERT_TYPES = ['Open Water Diver','Advanced Open Water','Rescue Diver','Master Scuba Diver','Divemaster'];
 
-  go(section, extra) { this.setState(Object.assign({ section, menuFor: null }, extra || {})); }
+  certIndex(name) {
+    const map = {
+      'Open Water student': 0,
+      'Not yet certified': 0,
+      'Open Water Diver': 1,
+      'Advanced Open Water': 2,
+      'Rescue Diver': 3,
+      'Master Scuba Diver': 4,
+      'Divemaster': 5
+    };
+    return map[name] != null ? map[name] : 0;
+  }
+
+  goalLadderIndex(goal) {
+    return Math.min(3, Math.max(-1, this.certIndex(goal) - 1));
+  }
+
+  isGoalReached(d) {
+    if (!d || !d.goal) return false;
+    if (d.cert === 'Open Water student' || d.cert === 'Not yet certified') return false;
+    return this.certIndex(d.cert) === this.certIndex(d.goal) && this.certIndex(d.cert) > 0;
+  }
+
+  shortCert(name) {
+    if (name === 'Open Water student' || name === 'Not yet certified') return 'Open Water';
+    return name || '';
+  }
+
+  setDiverGoal(id, goal) {
+    const d = this.D.find(function(x) { return x.id === id; });
+    if (!d) return;
+    d.goal = goal;
+    const reached = this.isGoalReached(d);
+    if (reached) {
+      if (d.status === 'ready') d.status = 'certified';
+    } else if (d.status === 'certified' && this.certIndex(d.cert) < this.certIndex(goal)) {
+      d.status = 'ready';
+    }
+    const self = this;
+    this.setState({ menuFor: null, goalToastFor: reached ? id : (this.state.goalToastFor === id ? null : this.state.goalToastFor) }, function() {
+      self.persistDemo();
+      if (reached) self.maybeGoalToast(id, true);
+    });
+  }
+
+  maybeGoalToast(id, force) {
+    const d = this.D.find(function(x) { return x.id === id; });
+    if (!d || !this.isGoalReached(d)) return;
+    if (!force && this.state.goalToastFor === id) return;
+    const first = d.name.split(' ')[0];
+    const self = this;
+    this.setState({
+      toast: first + ' reached their goal — set their next one?',
+      goalToastFor: id
+    });
+    setTimeout(function() {
+      if (self.state.toast && self.state.toast.indexOf('reached their goal') !== -1) self.setState({ toast: null });
+    }, 4500);
+  }
+
+  go(section, extra) {
+    const self = this;
+    const nextId = extra && extra.diverId != null ? extra.diverId : this.state.diverId;
+    this.setState(Object.assign({ section, menuFor: null }, extra || {}), function() {
+      if (section === 'detail' || section === 'pathway') self.maybeGoalToast(nextId);
+    });
+  }
 
   persistDemo() {}
 
@@ -1350,26 +1458,44 @@ class Component extends DCLogic {
   }
 
   enrich() {
+    const self = this;
     const meta = { ready:['Ready to advance','tag tag-accent'], progress:['In progress','tag tag-accent-2'], stalled:['Stalled','tag tag-neutral'], certified:['Certified','tag tag-neutral'] };
     return this.D.map((d, i) => {
-      const pct = Math.min(100, (d.nodesDone + d.frac) * 25);
-      const nodes = [25,50,75,100].map((p,j) => {
+      const goalReached = this.isGoalReached(d);
+      const goalLvl = Math.max(1, this.certIndex(d.goal));
+      const curLvl = d.nodesDone;
+      const pct = goalReached ? 100 : Math.min(100, Math.round((curLvl + d.frac) / goalLvl * 100));
+      const nodeCount = goalLvl;
+      const nodes = Array.from({ length: nodeCount }, function(_, j) {
+        const p = ((j + 1) / nodeCount) * 100;
         let look;
-        if (j < d.nodesDone) look = 'width:15px;height:15px;background:var(--color-accent-2-700);border:2.5px solid var(--color-accent-2-700)';
+        if (j < d.nodesDone || goalReached) look = 'width:15px;height:15px;background:var(--color-accent-2-700);border:2.5px solid var(--color-accent-2-700)';
         else if (j === d.nodesDone && d.gate) look = 'width:17px;height:17px;background:var(--color-bg);border:2.5px dashed var(--color-accent-600)';
         else look = 'width:15px;height:15px;background:var(--color-bg);border:2.5px solid var(--color-neutral-400)';
         return { style:'position:absolute;top:50%;transform:translate(-50%,-50%);border-radius:50%;box-sizing:border-box;left:'+p+'%;'+look };
       });
-      const segs = [0,1,2,3].map(j => ({ w: j < d.nodesDone ? 100 : j === d.nodesDone ? Math.round(d.frac*100) : 0 }));
+      const segs = Array.from({ length: nodeCount }, function(_, j) {
+        let w = 0;
+        if (goalReached || j < d.nodesDone) w = 100;
+        else if (j === d.nodesDone) w = Math.round(d.frac * 100);
+        return { w: w };
+      });
       const av = this.AV[i % 3];
       const medColor = d.med==='current' ? 'var(--color-accent-2-700)' : 'var(--color-accent-700)';
       const next = Object.assign({}, d.next, { blockers: d.next.blockers.map(b => ({ t: b.t, met: b.met, unmet: !b.met, chip: b.t, chipStyle: 'display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;' + (b.met ? 'background:var(--color-accent-2-200);color:var(--color-accent-2-900)' : 'background:var(--color-bg);border:1.5px dashed var(--color-accent-500);color:var(--color-accent-800)') })) });
+      const barLabel = goalReached ? ('Goal reached · ' + d.goal) : (self.shortCert(d.cert) + ' → ' + d.goal);
+      const statusPair = goalReached ? ['Goal reached','tag tag-accent-2'] : meta[d.status];
       return this.attachInvite(Object.assign({}, d, {
         next,
-        statusLabel: meta[d.status][0], tagCls: meta[d.status][1],
+        goal: d.goal,
+        goalReached: goalReached,
+        notGoalReached: !goalReached,
+        statusLabel: statusPair[0], tagCls: statusPair[1],
         pct, nodes, segs, avBg: av[0], avFg: av[1],
         gated: !!d.gate, notGated: !d.gate, gateText: d.gate,
-        nextTitle: d.next.title, nextGap: d.next.gap,
+        nextTitle: goalReached ? 'Goal reached' : d.next.title,
+        nextGap: goalReached ? 'Set the next certification' : d.next.gap,
+        barLabel: barLabel,
         medStyle: 'font-size:12px;font-weight:600;color:'+medColor,
         open: () => this.go('detail', { diverId: d.id }),
         openPath: () => this.go('pathway', { diverId: d.id, focusStep: Math.min(d.nodesDone, 3), specOpen: false })
@@ -1394,7 +1520,7 @@ class Component extends DCLogic {
     // roster filter/sort
     const q = s.search.trim().toLowerCase();
     let roster = all.filter(d => {
-      if (q && !(d.name + ' ' + d.cert + ' ' + d.next.title + ' ' + (d.course ? d.course.name : '')).toLowerCase().includes(q)) return false;
+      if (q && !(d.name + ' ' + d.cert + ' ' + d.goal + ' ' + d.next.title + ' ' + (d.course ? d.course.name : '')).toLowerCase().includes(q)) return false;
       if (s.filter === 'ready') return d.status === 'ready';
       if (s.filter === 'progress') return d.status === 'progress';
       if (s.filter === 'stalled') return d.status === 'stalled';
@@ -1409,7 +1535,11 @@ class Component extends DCLogic {
     };
     roster = roster.slice().sort(sorters[s.sort]);
 
-    const chipDefs = [['all','All',all.length],['ready','Ready to advance',3],['progress','In progress',4],['stalled','Stalled',2],['attention','Needs attention',4]];
+    const readyAll = all.filter(d => d.status === 'ready');
+    const progressCount = all.filter(d => d.status === 'progress').length;
+    const stalledCount = all.filter(d => d.status === 'stalled').length;
+    const attentionCount = all.filter(d => d.med !== 'current' || d.status === 'stalled').length;
+    const chipDefs = [['all','All',all.length],['ready','Ready to advance',readyAll.length],['progress','In progress',progressCount],['stalled','Stalled',stalledCount],['attention','Needs attention',attentionCount]];
     const filterChips = chipDefs.map(([id, label, n]) => ({
       label: label + ' · ' + n,
       click: () => this.setState({ filter: id }),
@@ -1423,8 +1553,7 @@ class Component extends DCLogic {
     const attention = [
       { who:'Lena Vogel', what:'Medical lapsed May 2026 — blocks everything', click: () => this.go('detail',{diverId:'lena'}) },
       { who:'Dex Fontaine', what:'Medical expires Sep 4 — mid-Divemaster', click: () => this.go('detail',{diverId:'dex'}) },
-      { who:'Callum Doyle', what:'Stalled at confined water 2 of 5 · 7 weeks', click: () => this.go('detail',{diverId:'callum'}) },
-      { who:'Maya Lindqvist', what:'EFR lapsed — the one thing blocking Rescue', click: () => this.go('detail',{diverId:'maya'}) }
+      { who:'Callum Doyle', what:'Stalled at confined water 2 of 5 · 7 weeks', click: () => this.go('detail',{diverId:'callum'}) }
     ];
     const sessions = [
       { day:'Tue', time:'18:00', title:'Open Water — confined water 4', where:'Harbor Street pool', who:'Priya N.' },
@@ -1440,20 +1569,31 @@ class Component extends DCLogic {
 
     // pathway ladder for cur
     const isStudent = cur.nodesDone === 0;
+    const goalLadder = this.goalLadderIndex(cur.goal);
     const steps = this.LADDER.map((st, i) => {
+      const isGoal = st.name === cur.goal;
+      const isBeyondGoal = i > goalLadder;
       let state = 'locked';
-      if (i < cur.nodesDone) state = 'done';
+      if (isBeyondGoal) state = 'beyond';
+      else if (i < cur.nodesDone || (cur.goalReached && i <= goalLadder)) state = 'done';
       else if (i === cur.nodesDone) state = isStudent && cur.course ? 'current' : 'next';
       else if (i === 3 && cur.id === 'dex') state = 'locked';
       const focused = s.focusStep === i;
-      const ring = { done:'background:var(--color-accent-2-600);border:2.5px solid var(--color-accent-2-600);color:#f0ebd8', current:'background:var(--color-accent-100);border:2.5px solid var(--color-accent);color:var(--color-accent-700)', next:'background:var(--color-accent);border:2.5px solid var(--color-accent);color:var(--color-bg)', locked:'background:var(--color-bg);border:2px dashed var(--color-neutral-400);color:var(--color-neutral-500)' }[state];
+      const ring = {
+        done:'background:var(--color-accent-2-600);border:2.5px solid var(--color-accent-2-600);color:#f0ebd8',
+        current:'background:var(--color-accent-100);border:2.5px solid var(--color-accent);color:var(--color-accent-700)',
+        next:'background:var(--color-accent);border:2.5px solid var(--color-accent);color:var(--color-bg)',
+        locked:'background:var(--color-bg);border:2px dashed var(--color-neutral-400);color:var(--color-neutral-500)',
+        beyond:'background:var(--color-bg);border:2px dashed var(--color-neutral-300);color:var(--color-neutral-400)'
+      }[state];
       return {
         name: st.name, sub: st.sub, num: i + 1,
-        isDone: state==='done', isCurrent: state==='current', isNext: state==='next', isLocked: state==='locked',
+        isDone: state==='done', isCurrent: state==='current', isNext: state==='next', isLocked: state==='locked' || state==='beyond',
+        isGoal: isGoal, isBeyondGoal: isBeyondGoal,
         focused,
-        nodeStyle: 'width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:none;position:relative;z-index:2;' + ring,
-        cardStyle: 'display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:16px 10px 14px;border-radius:var(--radius-md);cursor:pointer;position:relative;' + (focused ? 'background:var(--color-neutral-100);box-shadow:var(--shadow-sm)' : ''),
-        nameStyle: 'font-size:13.5px;font-weight:700;line-height:1.25;' + (state==='locked' ? 'color:var(--color-neutral-500)' : ''),
+        nodeStyle: 'width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:none;position:relative;z-index:2;' + ring + (isGoal ? ';box-shadow:0 0 0 3px var(--color-accent-2-300)' : ''),
+        cardStyle: 'display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:16px 10px 14px;border-radius:var(--radius-md);cursor:pointer;position:relative;' + (focused ? 'background:var(--color-neutral-100);box-shadow:var(--shadow-sm)' : '') + (isBeyondGoal ? ';opacity:.45' : ''),
+        nameStyle: 'font-size:13.5px;font-weight:700;line-height:1.25;' + ((state==='locked' || state==='beyond') ? 'color:var(--color-neutral-500)' : ''),
         focus: () => this.setState({ focusStep: focused ? null : i }),
         reqs: this.reqsFor(i, cur).map(r => ({ t:r.t, met:r.met, unmet:!r.met, style:'display:flex;align-items:center;gap:9px;font-size:13px;'+(r.met?'color:var(--color-accent-2-800)':'color:var(--color-accent-700);font-weight:600') })),
         prog: st.prog
@@ -1465,7 +1605,9 @@ class Component extends DCLogic {
     const vizChoice = (p.pathwayViz ?? 'depth profile');
     const h = React.createElement;
     const pts = [[70,92],[250,160],[480,240],[710,318],[950,390]];
-    const nd = Math.min(cur.nodesDone, 4), dfr = cur.nodesDone >= 4 ? 0 : cur.frac;
+    const goalPt = Math.min(goalLadder + 1, 4);
+    const nd = Math.min(cur.nodesDone, goalPt, 4);
+    const dfr = (cur.goalReached || cur.nodesDone >= goalPt) ? 0 : cur.frac;
     const dpa = pts[nd], dpb = pts[Math.min(nd+1,4)];
     const mx = dpa[0] + (dpb[0]-dpa[0])*dfr, my = dpa[1] + (dpb[1]-dpa[1])*dfr;
     const solidD = 'M' + pts.slice(0, nd+1).concat([[mx,my]]).map(q => q.join(' ')).join(' L');
@@ -1498,17 +1640,18 @@ class Component extends DCLogic {
       ...steps.map((st, i) => { const x = pts[i+1][0], y = pts[i+1][1];
         const fill = st.isDone ? 'var(--color-accent-2-700)' : st.isNext ? 'var(--color-accent)' : 'var(--color-bg)';
         const strk = st.isDone ? 'var(--color-accent-2-700)' : (st.isNext || st.isCurrent) ? 'var(--color-accent)' : 'var(--color-neutral-400)';
-        const pw = Math.max(st.name.length*8.2, depthLbl[i].length*6.2) + 24;
-        return h('g', { key:'n'+i, onClick: st.focus, style:{ cursor:'pointer' } },
+        const pw = Math.max(st.name.length*8.2, depthLbl[i].length*6.2, st.isGoal ? 48 : 0) + 24;
+        return h('g', { key:'n'+i, onClick: st.focus, style:{ cursor:'pointer', opacity: st.isBeyondGoal ? 0.4 : 1 } },
           st.focused ? h('circle', { cx:x, cy:y, r:23, fill:'none', stroke:'var(--color-accent-400)', strokeWidth:2.5 }) : null,
+          st.isGoal ? h('circle', { cx:x, cy:y, r:22, fill:'none', stroke:'var(--color-accent-2-400)', strokeWidth:3 }) : null,
           h('circle', { cx:x, cy:y, r:15, fill: fill, stroke: strk, strokeWidth:2.5, strokeDasharray: st.isLocked ? '4 4' : 'none' }),
           st.isDone ? h('path', { d:'M'+(x-6)+' '+y+' l4.5 5 l8 -9.5', fill:'none', stroke:'#f0ebd8', strokeWidth:3, strokeLinecap:'round', strokeLinejoin:'round' }) : null,
           st.isNext ? h('path', { d:'M'+(x-5)+' '+y+' h10 M'+x+' '+(y-5)+' l5 5 l-5 5', fill:'none', stroke:'var(--color-bg)', strokeWidth:2.5, strokeLinecap:'round', strokeLinejoin:'round' }) : null,
           st.isCurrent ? h('circle', { cx:x, cy:y, r:6, fill:'var(--color-accent)' }) : null,
           st.isLocked ? h('text', { x: x, y:y+5, fontSize:13, fontWeight:700, textAnchor:'middle', fill:'var(--color-neutral-500)', fontFamily:'var(--font-body)' }, String(i+1)) : null,
-          h('rect', { x:x-pw/2, y:y+24, width:pw, height:40, rx:9, fill:'var(--color-bg)', style:{ filter:'drop-shadow(0 3px 0 rgba(3,43,51,.14))' } }),
+          h('rect', { x:x-pw/2, y:y+24, width:pw, height: st.isGoal ? 54 : 40, rx:9, fill:'var(--color-bg)', style:{ filter:'drop-shadow(0 3px 0 rgba(3,43,51,.14))' } }),
           h('text', { x: x, y:y+41, fontSize:14, fontWeight:700, textAnchor:'middle', fill: st.isLocked ? 'var(--color-neutral-500)' : 'var(--color-text)', fontFamily:'var(--font-body)' }, st.name),
-          h('text', { x: x, y:y+57, fontSize:10.5, textAnchor:'middle', fill:'var(--color-neutral-600)', fontFamily:'var(--font-body)' }, depthLbl[i]),
+          h('text', { x: x, y:y+57, fontSize:10.5, textAnchor:'middle', fill:'var(--color-neutral-600)', fontFamily:'var(--font-body)' }, st.isGoal ? 'Goal · ' + depthLbl[i] : depthLbl[i]),
           h('circle', { cx:x, cy:y, r:38, fill:'transparent' })); }),
       h('circle', { cx:mx+15, cy:my-19, r:3, fill:'none', stroke:'var(--color-accent-2-300)', strokeWidth:2 }),
       h('circle', { cx:mx+25, cy:my-33, r:4.5, fill:'none', stroke:'var(--color-accent-2-300)', strokeWidth:2 }),
@@ -1524,7 +1667,7 @@ class Component extends DCLogic {
     }).sort((a,b) => (b.earned?1:0)-(a.earned?1:0));
 
     const proSteps = [
-      { name:'Divemaster', sub: cur.id==='dex' ? 'In progress — module 3 of 8' : '18+ · Rescue + 40 dives + medical', active: cur.id==='dex' },
+      { name:'Divemaster', sub: cur.goal === 'Divemaster' ? (cur.id==='dex' ? 'Goal · in progress — module 3 of 8' : 'Goal · 18+ · Rescue + 40 dives + medical') : (cur.id==='dex' ? 'In progress — module 3 of 8' : '18+ · Rescue + 40 dives + medical'), active: cur.id==='dex' || cur.goal === 'Divemaster' },
       { name:'Instructor & beyond', sub:'The path past Divemaster', active:false }
     ].map(x => ({ ...x, style: 'flex:1;padding:16px 18px;border-radius:var(--radius-md);' + (x.active ? 'background:var(--color-accent-2-100);border:1.5px solid var(--color-accent-2-500)' : 'border:1.5px dashed var(--color-neutral-300);color:var(--color-neutral-600)') }));
 
@@ -1671,7 +1814,7 @@ class Component extends DCLogic {
       hasToast: !!s.toast, toastMsg: s.toast || '',
       signIn: () => this.setState({ authed: true, section: 'dashboard', briefOpen: false }),
       signOut: () => this.setState({ authed: false }),
-      navItems, glance, readyList, readyCount, readyHasItems, readyEmpty, attention, sessions,
+      navItems, glance, readyList, readyCount, readyHasItems, readyEmpty, attention, attentionCount, sessions,
       goReady: () => this.go('divers', { filter: 'ready' }),
       secDashboard: s.section === 'dashboard', secDivers: s.section === 'divers',
       secDetail: s.section === 'detail', secPathway: s.section === 'pathway',
@@ -1705,7 +1848,12 @@ class Component extends DCLogic {
       proSteps, programsCore, programsSpec, programsPro, locations, resPools, resSites, resRooms,
       goResources: () => this.go('resources'),
       addDiverOpen: s.addDiverOpen,
-      openAddDiver: () => this.setState({ addDiverOpen: true }),
+      addCert: s.addCert || 'Not yet certified',
+      addGoal: s.addGoal || 'Open Water Diver',
+      setAddCert: e => this.setState({ addCert: e.target.value }),
+      setAddGoal: e => this.setState({ addGoal: e.target.value }),
+      setCurGoal: e => this.setDiverGoal(cur.id, e.target.value),
+      openAddDiver: () => this.setState({ addDiverOpen: true, addCert: 'Not yet certified', addGoal: 'Open Water Diver' }),
       closeAddDiver: () => this.setState({ addDiverOpen: false }),
       stopClick: e => e.stopPropagation(),
       addLocationOpen: s.addLocationOpen,
