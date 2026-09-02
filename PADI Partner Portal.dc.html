@@ -29,9 +29,22 @@
     ::-webkit-scrollbar{width:10px;height:10px} ::-webkit-scrollbar-thumb{background:var(--color-neutral-300);border-radius:99px}
     .dialog-backdrop{z-index:50}
     .invite-wrap{position:relative;flex:none}
+    .pick-diver{-webkit-appearance:none;appearance:none;margin:0}
     .invite-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:228px;display:flex;flex-direction:column;padding:6px;background:var(--color-surface);border-radius:var(--radius-md);box-shadow:var(--shadow-lg)}
     .invite-menu button{display:block;width:100%;text-align:left;border:0;background:transparent;font-family:var(--font-body);font-size:13px;font-weight:600;padding:9px 12px;border-radius:var(--radius-sm);cursor:pointer;color:var(--color-text)}
     .invite-menu button:hover{background:var(--color-neutral-100)}
+    .goal-ring{position:relative;width:46px;height:46px;display:flex;align-items:center;justify-content:center;flex:none}
+    .goal-ring-mark{position:absolute;width:64px;height:64px;border-radius:50%;border:3px solid var(--color-accent-2-700);pointer-events:none;box-shadow:0 3px 8px color-mix(in srgb,var(--color-accent-2-900) 22%,transparent)}
+    .goal-ring-mark.is-reached{border-color:var(--path-gold-ink);box-shadow:0 3px 8px color-mix(in srgb,var(--path-gold-ink) 28%,transparent)}
+    :root{
+      --path-gold:#c9a227;
+      --path-gold-ink:#6b5410;
+      --path-gold-soft:#f3e6b8;
+    }
+    .tag-gold{background:var(--path-gold-soft);color:var(--path-gold-ink)}
+    .btn-gold{background:var(--path-gold-ink);color:#f7f0d4}
+    .btn-gold:hover{background:#543f0c}
+    .btn-gold:active{background:#3d2d08}
     .demo-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:40;padding:12px 20px;border-radius:999px;background:var(--color-accent-2-700);color:#f0ebd8;font-weight:700;font-size:13.5px;box-shadow:var(--shadow-lg);font-family:var(--font-body)}
     .brief-steps{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
     .brief-steps li{display:flex;align-items:flex-start;gap:12px;font-size:14px;line-height:1.4;opacity:1;color:var(--color-text)}
@@ -111,7 +124,7 @@
             </li>
             <li>
               <span class="brief-num">3</span>
-              <span>Enroll them in their next certification, or plan a Dive Day.</span>
+              <span>If there's no Dive Day for their next cert, create one. Then enroll them.</span>
             </li>
           </ol>
           <p style="margin:14px 0 0">It's all demo data — click freely.</p>
@@ -179,7 +192,7 @@
         </sc-if>
         <div class="{{ priorityCardClass }}" style="padding:24px 26px;border:1.5px solid var(--color-accent-300);overflow:visible" onClick="{{ dismissSpotlight }}">
           <sc-if value="{{ spotlightOn }}" hint-placeholder-val="{{ false }}">
-            <div class="priority-spotlight-tip" aria-live="polite">Enroll your ready divers in their next certification.</div>
+            <div class="priority-spotlight-tip" aria-live="polite">Create a Dive Day for their next cert, then enroll them.</div>
           </sc-if>
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
             <div>
@@ -206,12 +219,24 @@
                   </sc-if>
                 </div>
                 <div class="invite-wrap" onClick="{{ d.stopRow }}">
-                  <sc-if value="{{ d.showEnroll }}" hint-placeholder-val="{{ true }}">
-                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+                    <sc-if value="{{ d.showCreateDiveDay }}" hint-placeholder-val="{{ false }}">
+                      <div class="text-muted" style="font-size:11px;font-weight:600;text-align:right;max-width:180px">No {{ d.enrollShort }} Dive Day yet</div>
+                      <button class="btn btn-primary" onClick="{{ d.createGroupDive }}" style="flex:none;font-size:12.5px;padding:7px 16px">Create Dive Day</button>
+                    </sc-if>
+                    <sc-if value="{{ d.showEnroll }}" hint-placeholder-val="{{ true }}">
                       <button class="btn btn-primary" onClick="{{ d.enroll }}" style="flex:none;font-size:12.5px;padding:7px 16px">Enroll in {{ d.enrollTitle }}</button>
-                      <button class="btn btn-ghost" onClick="{{ d.followUp }}" style="font-family:var(--font-body);font-weight:600;font-size:12px;padding:2px 8px">Follow Up</button>
-                    </div>
-                  </sc-if>
+                    </sc-if>
+                    <sc-if value="{{ d.showFollowUp }}" hint-placeholder-val="{{ true }}">
+                      <button class="btn btn-ghost" onClick="{{ d.toggleMenu }}" style="font-family:var(--font-body);font-weight:600;font-size:12px;padding:2px 8px">Follow Up</button>
+                      <sc-if value="{{ d.menuOpen }}" hint-placeholder-val="{{ false }}">
+                        <div class="invite-menu">
+                          <button type="button" onClick="{{ d.sendFollowUpEmail }}">Send follow-up email</button>
+                          <button type="button" onClick="{{ d.viewDiver }}">View Diver</button>
+                        </div>
+                      </sc-if>
+                    </sc-if>
+                  </div>
                   <sc-if value="{{ d.enrolled }}" hint-placeholder-val="{{ false }}">
                     <span style="flex:none;display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-800);font-size:12px;font-weight:700">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
@@ -319,7 +344,7 @@
             </select>
           </div>
         </div>
-        <label class="text-muted" style="display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin:12px 0 6px">Target certification</label>
+        <label class="text-muted" style="display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin:12px 0 6px">Dive day type</label>
         <select class="input" value="{{ gCert }}" onChange="{{ setGCert }}" style="max-width:420px;cursor:pointer">
           <option value="">Select certification</option>
           <option value="Open Water Diver">Open Water Diver</option>
@@ -333,19 +358,19 @@
           <div class="text-muted" style="font-size:12px;margin:12px 0 8px">{{ gMatchLine }}</div>
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
             <sc-for list="{{ pickRows }}" as="d" hint-placeholder-count="4">
-              <div onClick="{{ d.togglePick }}" style="{{ d.pickStyle }}">
+              <button type="button" class="pick-diver" onClick="{{ d.togglePick }}" aria-pressed="{{ d.picked }}" style="{{ d.pickStyle }}">
                 <div style="width:30px;height:30px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:{{ d.avBg }};color:{{ d.avFg }}">{{ d.initials }}</div>
-                <div style="flex:1;min-width:0">
+                <div style="flex:1;min-width:0;text-align:left">
                   <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
                     <div style="font-size:13.5px;font-weight:600">{{ d.name }}</div>
                     <span class="tag tag-accent-2" style="font-size:10px;padding:2px 8px">Needs this cert</span>
                   </div>
-                  <div class="text-muted" style="font-size:11.5px">Next: {{ d.nextTitle }}</div>
+                  <div class="text-muted" style="font-size:11.5px">Next: {{ d.enrollTitle }}</div>
                 </div>
                 <sc-if value="{{ d.picked }}" hint-placeholder-val="{{ false }}">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M20 6L9 17l-5-5"></path></svg>
                 </sc-if>
-              </div>
+              </button>
             </sc-for>
           </div>
           <sc-if value="{{ pickEmpty }}" hint-placeholder-val="{{ false }}">
@@ -446,9 +471,9 @@
       </select>
     </div>
     <sc-if value="{{ rosterHasRows }}" hint-placeholder-val="{{ true }}">
-    <div class="card elev-sm" style="padding:8px 18px 12px">
+    <div class="card elev-sm" style="padding:8px 18px 12px;overflow:visible">
       <table class="table">
-        <thead><tr><th style="width:21%">Diver</th><th>Status</th><th style="width:28%">Pathway</th><th style="width:17%">Next step</th><th style="text-align:right">Dives</th><th>Medical</th><th></th></tr></thead>
+        <thead><tr><th style="width:22%">Diver</th><th>Status</th><th style="width:36%">Pathway</th><th style="width:20%">Next step</th><th style="text-align:right">Dives</th><th></th></tr></thead>
         <tbody>
           <sc-for list="{{ roster }}" as="d" hint-placeholder-count="6">
             <tr onClick="{{ d.open }}" style="cursor:pointer">
@@ -461,31 +486,58 @@
               <td><span class="{{ d.tagCls }}" style="font-size:10.5px;white-space:nowrap">{{ d.statusLabel }}</span></td>
               <td>
                 <sc-if value="{{ barCheckpoints }}" hint-placeholder-val="{{ true }}">
-                  <div style="position:relative;height:11px;border-radius:99px;background:var(--color-neutral-200);margin:7px 8px 0 0">
-                    <div style="position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--color-accent-2-500);width:{{ d.pct }}%"></div>
-                    <sc-for list="{{ d.nodes }}" as="n" hint-placeholder-count="4"><div style="{{ n.style }}"></div></sc-for>
+                  <div style="padding:10px 10px 4px 2px">
+                    <div style="position:relative;height:11px;border-radius:99px;background:{{ d.barTrack }};overflow:visible">
+                      <div style="position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:{{ d.barFill }};width:{{ d.pct }}%"></div>
+                      <sc-for list="{{ d.nodes }}" as="n" hint-placeholder-count="4"><div style="{{ n.style }}"></div></sc-for>
+                    </div>
                   </div>
                 </sc-if>
                 <sc-if value="{{ barSegments }}" hint-placeholder-val="{{ false }}">
                   <div style="display:flex;gap:4px;margin:7px 8px 0 0">
                     <sc-for list="{{ d.segs }}" as="g" hint-placeholder-count="4">
-                      <div style="flex:1;height:11px;border-radius:99px;background:var(--color-neutral-200);overflow:hidden"><div style="height:100%;border-radius:99px;background:var(--color-accent-2-500);width:{{ g.w }}%"></div></div>
+                      <div style="flex:1;height:11px;border-radius:99px;background:{{ d.barTrack }};overflow:hidden"><div style="height:100%;border-radius:99px;background:{{ d.barFill }};width:{{ g.w }}%"></div></div>
                     </sc-for>
                   </div>
                 </sc-if>
+                <div onClick="{{ d.stopRow }}" style="display:flex;align-items:center;gap:6px;margin-top:var(--space-6)">
+                  <span style="{{ d.goalLabelStyle }}">Goal</span>
+                  <select class="input" value="{{ d.goal }}" onChange="{{ d.setGoal }}" onClick="{{ d.stopRow }}" style="{{ d.goalSelectStyle }}">
+                    <sc-for list="{{ certOptions }}" as="opt">
+                      <option value="{{ opt.value }}">{{ opt.label }}</option>
+                    </sc-for>
+                  </select>
+                </div>
                 <sc-if value="{{ d.gated }}" hint-placeholder-val="{{ false }}">
-                  <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--color-accent-700);margin-top:7px">
+                  <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--color-accent-700);margin-top:6px">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                     {{ d.gateText }}
                   </div>
                 </sc-if>
-                <sc-if value="{{ d.notGated }}" hint-placeholder-val="{{ true }}">
-                  <div class="text-muted" style="font-size:11px;margin-top:7px">{{ d.barLabel }}</div>
+              </td>
+              <td style="overflow:visible">
+                <sc-if value="{{ d.notGoalReached }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-size:13px;font-weight:600">{{ d.nextTitle }}</div>
+                  <div class="text-muted" style="font-size:11px">{{ d.nextGap }}</div>
+                </sc-if>
+                <sc-if value="{{ d.goalReached }}" hint-placeholder-val="{{ false }}">
+                  <div class="invite-wrap" onClick="{{ d.stopRow }}">
+                    <sc-if value="{{ d.showReachOut }}" hint-placeholder-val="{{ true }}">
+                      <button class="btn btn-gold" onClick="{{ d.toggleMenu }}" style="font-size:12.5px;padding:7px 16px">Reach out</button>
+                      <sc-if value="{{ d.menuOpen }}" hint-placeholder-val="{{ false }}">
+                        <div class="invite-menu" style="left:0;right:auto">
+                          <button type="button" onClick="{{ d.sendReachOutEmail }}">Email about a new goal</button>
+                          <button type="button" onClick="{{ d.viewDiver }}">Set a new goal</button>
+                        </div>
+                      </sc-if>
+                    </sc-if>
+                    <sc-if value="{{ d.followedUp }}" hint-placeholder-val="{{ false }}">
+                      <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;background:var(--path-gold-soft);color:var(--path-gold-ink);font-size:12px;font-weight:700">Reached out · {{ d.followUpLabel }}</span>
+                    </sc-if>
+                  </div>
                 </sc-if>
               </td>
-              <td><div style="font-size:13px;font-weight:600">{{ d.nextTitle }}</div><div class="text-muted" style="font-size:11px">{{ d.nextGap }}</div></td>
               <td style="text-align:right;font-weight:600">{{ d.dives }}</td>
-              <td><span style="{{ d.medStyle }}">{{ d.medText }}</span></td>
               <td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-neutral-500)" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></td>
             </tr>
           </sc-for>
@@ -534,16 +586,32 @@
     <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:start">
       <div style="display:flex;flex-direction:column;gap:20px">
         <sc-if value="{{ cur.goalReached }}" hint-placeholder-val="{{ false }}">
-        <div class="card elev-md" style="padding:22px 24px;background:var(--color-accent-2-100)">
-          <div class="card-kicker">Goal reached</div>
+        <div class="card elev-md" style="padding:22px 24px;background:var(--path-gold-soft)">
+          <div class="card-kicker" style="color:var(--path-gold-ink)">Goal reached</div>
           <div style="font-family:var(--font-heading);font-size:24px;line-height:1.15">{{ curFirst }} reached their goal</div>
-          <div style="font-size:14px;font-weight:600;color:var(--color-accent-2-800);margin-top:4px">{{ cur.goal }} — set their next one?</div>
+          <div style="font-size:14px;font-weight:600;color:var(--path-gold-ink);margin-top:4px">{{ cur.goal }} — set their next one?</div>
           <p class="text-muted" style="font-size:13.5px;margin:10px 0 0;max-width:42ch">Most divers aren't aiming for the top of the ladder. Pick the certification they actually want next.</p>
-          <select class="input" value="{{ cur.goal }}" onChange="{{ setCurGoal }}" style="margin-top:14px;max-width:320px;cursor:pointer">
-            <sc-for list="{{ certOptions }}" as="opt">
-              <option value="{{ opt.value }}">{{ opt.label }}</option>
-            </sc-for>
-          </select>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px">
+            <select class="input" value="{{ cur.goal }}" onChange="{{ setCurGoal }}" style="max-width:280px;cursor:pointer">
+              <sc-for list="{{ certOptions }}" as="opt">
+                <option value="{{ opt.value }}">{{ opt.label }}</option>
+              </sc-for>
+            </select>
+            <div class="invite-wrap">
+              <sc-if value="{{ cur.showReachOut }}" hint-placeholder-val="{{ true }}">
+                <button class="btn btn-gold" onClick="{{ cur.toggleMenu }}">Reach out</button>
+                <sc-if value="{{ cur.menuOpen }}" hint-placeholder-val="{{ false }}">
+                  <div class="invite-menu" style="left:0;right:auto">
+                    <button type="button" onClick="{{ cur.sendReachOutEmail }}">Email about a new goal</button>
+                    <button type="button" onClick="{{ cur.viewDiver }}">View contact</button>
+                  </div>
+                </sc-if>
+              </sc-if>
+              <sc-if value="{{ cur.followedUp }}" hint-placeholder-val="{{ false }}">
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;background:color-mix(in srgb,#fff 55%,var(--path-gold-soft));color:var(--path-gold-ink);font-size:12px;font-weight:700">Reached out · {{ cur.followUpLabel }}</span>
+              </sc-if>
+            </div>
+          </div>
         </div>
         </sc-if>
         <sc-if value="{{ cur.notGoalReached }}" hint-placeholder-val="{{ true }}">
@@ -560,10 +628,22 @@
             </sc-for>
           </div>
           <div style="display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap">
+            <sc-if value="{{ cur.showCreateDiveDay }}" hint-placeholder-val="{{ false }}">
+              <button class="btn btn-primary" onClick="{{ cur.createGroupDive }}">Create Dive Day</button>
+            </sc-if>
             <sc-if value="{{ cur.showEnroll }}" hint-placeholder-val="{{ true }}">
               <button class="btn btn-primary" onClick="{{ cur.enroll }}">Enroll in {{ cur.enrollTitle }}</button>
-              <button class="btn btn-ghost" onClick="{{ cur.followUp }}" style="font-family:var(--font-body);font-weight:600">Follow Up</button>
-              <span class="text-muted" style="font-size:11.5px">Demo only — no email is sent.</span>
+            </sc-if>
+            <sc-if value="{{ cur.showFollowUp }}" hint-placeholder-val="{{ true }}">
+              <div class="invite-wrap">
+                <button class="btn btn-ghost" onClick="{{ cur.toggleMenu }}" style="font-family:var(--font-body);font-weight:600">Follow Up</button>
+                <sc-if value="{{ cur.menuOpen }}" hint-placeholder-val="{{ false }}">
+                  <div class="invite-menu" style="left:0;right:auto">
+                    <button type="button" onClick="{{ cur.sendFollowUpEmail }}">Send follow-up email</button>
+                    <button type="button" onClick="{{ cur.viewDiver }}">View Diver</button>
+                  </div>
+                </sc-if>
+              </div>
             </sc-if>
             <sc-if value="{{ cur.enrolled }}" hint-placeholder-val="{{ false }}">
               <span style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-800);font-size:13px;font-weight:600">
@@ -574,7 +654,7 @@
             <sc-if value="{{ cur.followedUp }}" hint-placeholder-val="{{ false }}">
               <span style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-800);font-size:13px;font-weight:600">Follow-up sent · {{ cur.followUpLabel }}</span>
             </sc-if>
-            <button class="btn btn-ghost" onClick="{{ cur.createGroupDive }}" style="font-family:var(--font-body);font-weight:600">Plan a dive day</button>
+            <span class="text-muted" style="font-size:11.5px">Demo only — no email is sent.</span>
           </div>
         </div>
         </sc-if>
@@ -606,6 +686,18 @@
           </div>
         </div>
       </div>
+      <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="card elev-sm" style="{{ contactCardStyle }}">
+        <div style="font-size:15px;font-weight:700">Contact</div>
+        <div>
+          <div class="text-muted" style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Email</div>
+          <div style="font-size:13.5px;font-weight:600">{{ cur.email }}</div>
+        </div>
+        <div>
+          <div class="text-muted" style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Phone</div>
+          <div style="font-size:13.5px;font-weight:600">{{ cur.phone }}</div>
+        </div>
+      </div>
       <div class="card elev-sm" style="padding:20px 22px;gap:14px">
         <div style="font-size:15px;font-weight:700">Diving record</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
@@ -634,6 +726,7 @@
           </div>
         </div>
       </div>
+      </div>
     </div>
   </div>
   </sc-if>
@@ -648,10 +741,24 @@
     <div style="font-size:14px;font-weight:700;margin:0 0 8px">Goal: {{ cur.goal }}</div>
     <p class="text-muted" style="font-size:14px;margin-bottom:20px">Progress fills toward their goal — the rest of the ladder stays in view.</p>
     <sc-if value="{{ cur.goalReached }}" hint-placeholder-val="{{ false }}">
-    <div class="card elev-md" style="padding:24px 26px;background:var(--color-accent-2-100);margin-bottom:20px">
-      <div class="card-kicker">Goal reached</div>
+    <div class="card elev-md" style="padding:24px 26px;background:var(--path-gold-soft);margin-bottom:20px">
+      <div class="card-kicker" style="color:var(--path-gold-ink)">Goal reached</div>
       <div style="font-family:var(--font-heading);font-size:28px;line-height:1.1;margin:4px 0 6px">{{ curFirst }} reached their goal</div>
-      <div style="font-size:14.5px;font-weight:600;color:var(--color-accent-2-800)">{{ cur.goal }} — set their next one?</div>
+      <div style="font-size:14.5px;font-weight:600;color:var(--path-gold-ink)">{{ cur.goal }} — set their next one?</div>
+      <div class="invite-wrap" style="margin-top:14px">
+        <sc-if value="{{ cur.showReachOut }}" hint-placeholder-val="{{ true }}">
+          <button class="btn btn-gold" onClick="{{ cur.toggleMenu }}">Reach out</button>
+          <sc-if value="{{ cur.menuOpen }}" hint-placeholder-val="{{ false }}">
+            <div class="invite-menu" style="left:0;right:auto">
+              <button type="button" onClick="{{ cur.sendReachOutEmail }}">Email about a new goal</button>
+              <button type="button" onClick="{{ cur.viewDiver }}">View contact</button>
+            </div>
+          </sc-if>
+        </sc-if>
+        <sc-if value="{{ cur.followedUp }}" hint-placeholder-val="{{ false }}">
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;background:color-mix(in srgb,#fff 55%,var(--path-gold-soft));color:var(--path-gold-ink);font-size:12px;font-weight:700">Reached out · {{ cur.followUpLabel }}</span>
+        </sc-if>
+      </div>
     </div>
     </sc-if>
     <sc-if value="{{ cur.notGoalReached }}" hint-placeholder-val="{{ true }}">
@@ -667,9 +774,22 @@
         </div>
       </div>
       <div style="flex:none;display:flex;flex-direction:column;gap:8px;align-items:stretch;max-width:300px">
+        <sc-if value="{{ cur.showCreateDiveDay }}" hint-placeholder-val="{{ false }}">
+          <button class="btn btn-primary btn-block" onClick="{{ cur.createGroupDive }}">Create Dive Day</button>
+        </sc-if>
         <sc-if value="{{ cur.showEnroll }}" hint-placeholder-val="{{ true }}">
           <button class="btn btn-primary btn-block" onClick="{{ cur.enroll }}">Enroll in {{ cur.enrollTitle }}</button>
-          <button class="btn btn-ghost" onClick="{{ cur.followUp }}" style="font-family:var(--font-body);font-weight:600">Follow Up</button>
+        </sc-if>
+        <sc-if value="{{ cur.showFollowUp }}" hint-placeholder-val="{{ true }}">
+          <div class="invite-wrap">
+            <button class="btn btn-ghost" onClick="{{ cur.toggleMenu }}" style="font-family:var(--font-body);font-weight:600;width:100%">Follow Up</button>
+            <sc-if value="{{ cur.menuOpen }}" hint-placeholder-val="{{ false }}">
+              <div class="invite-menu" style="left:0;right:auto">
+                <button type="button" onClick="{{ cur.sendFollowUpEmail }}">Send follow-up email</button>
+                <button type="button" onClick="{{ cur.viewDiver }}">View Diver</button>
+              </div>
+            </sc-if>
+          </div>
           <span class="text-muted" style="font-size:11px;text-align:center">Demo only — no email is sent.</span>
         </sc-if>
         <sc-if value="{{ cur.enrolled }}" hint-placeholder-val="{{ false }}">
@@ -681,7 +801,6 @@
         <sc-if value="{{ cur.followedUp }}" hint-placeholder-val="{{ false }}">
           <span style="display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 16px;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-800);font-size:13px;font-weight:600;text-align:center">Follow-up sent · {{ cur.followUpLabel }}</span>
         </sc-if>
-        <button class="btn btn-ghost" onClick="{{ cur.createGroupDive }}" style="font-family:var(--font-body);font-weight:600">Plan a dive day</button>
         <button class="btn btn-secondary" onClick="{{ goPrograms }}">See matching course</button>
       </div>
     </div>
@@ -690,7 +809,7 @@
     <div class="card elev-sm" style="padding:24px 26px;margin-top:20px">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
         <div style="font-size:15px;font-weight:700">The journey</div>
-        <div class="text-muted" style="font-size:12px">select a certification for its requirements</div>
+        <div class="text-muted" style="font-size:12px">The ring marks their goal — select a certification for its requirements</div>
       </div>
       <sc-if value="{{ vizLadder }}" hint-placeholder-val="{{ false }}">
         <div style="position:relative">
@@ -698,17 +817,22 @@
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;position:relative">
             <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
               <div onClick="{{ st.focus }}" style="{{ st.cardStyle }}" style-hover="background:var(--color-neutral-100)">
-                <div style="{{ st.nodeStyle }}">
+                <div style="position:relative;width:46px;height:46px;display:flex;align-items:center;justify-content:center">
+                  <sc-if value="{{ st.isGoal }}" hint-placeholder-val="{{ false }}">
+                    <div aria-hidden="true" class="{{ cur.goalRingCls }}"></div>
+                  </sc-if>
+                  <div style="{{ st.nodeStyle }}">
                   <sc-if value="{{ st.isDone }}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></sc-if>
                   <sc-if value="{{ st.isNext }}" hint-placeholder-val="{{ false }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14 M12 5l7 7-7 7"></path></svg></sc-if>
                   <sc-if value="{{ st.isCurrent }}" hint-placeholder-val="{{ false }}"><div style="width:12px;height:12px;border-radius:50%;background:var(--color-accent)"></div></sc-if>
                   <sc-if value="{{ st.isLocked }}" hint-placeholder-val="{{ false }}"><span>{{ st.num }}</span></sc-if>
+                  </div>
                 </div>
                 <div style="{{ st.nameStyle }}">{{ st.name }}</div>
                 <div class="text-muted" style="font-size:11px;line-height:1.35">{{ st.sub }}</div>
                 <sc-if value="{{ st.isNext }}" hint-placeholder-val="{{ false }}"><span class="tag tag-accent">Recommended</span></sc-if>
                 <sc-if value="{{ st.isCurrent }}" hint-placeholder-val="{{ false }}"><span class="tag tag-accent">In progress</span></sc-if>
-                <sc-if value="{{ st.isGoal }}" hint-placeholder-val="{{ false }}"><span class="tag tag-accent-2">Goal</span></sc-if>
+                <sc-if value="{{ st.isGoal }}" hint-placeholder-val="{{ false }}"><span class="{{ cur.goalTagCls }}">Goal</span></sc-if>
               </div>
             </sc-for>
           </div>
@@ -716,7 +840,7 @@
       </sc-if>
       <sc-if value="{{ vizDepth }}" hint-placeholder-val="{{ true }}">
         <div style="border-radius:var(--radius-md);overflow:hidden">{{ depthSvg }}</div>
-        <div class="text-muted" style="font-size:11.5px;margin-top:8px">Certifications descend in order — the surface skills happen in any order, whenever the diver is ready.</div>
+        <div class="text-muted" style="font-size:11.5px;margin-top:8px">The ring marks their goal. Certifications descend in order — surface skills happen in any order, whenever the diver is ready.</div>
       </sc-if>
       <sc-if value="{{ focusedStep }}" hint-placeholder-val="{{ false }}">
         <div style="margin-top:16px;background:var(--color-neutral-100);border-radius:var(--radius-md);padding:18px 20px;display:flex;gap:24px;align-items:flex-start">
@@ -1076,6 +1200,19 @@ class Component extends DCLogic {
 
   CERT_TYPES = ['Open Water Diver','Advanced Open Water','Rescue Diver','Master Scuba Diver','Divemaster'];
 
+  CONTACTS = {
+    theo: { email:'theo.ramirez@reefmail.co', phone:'(555) 441-0188' },
+    sofia: { email:'sofia.marchetti@reefmail.co', phone:'(555) 441-0192' },
+    maya: { email:'maya.lindqvist@reefmail.co', phone:'(555) 441-0204' },
+    jonas: { email:'jonas.weber@reefmail.co', phone:'(555) 441-0211' },
+    amara: { email:'amara.okafor@reefmail.co', phone:'(555) 441-0226' },
+    dex: { email:'dex.fontaine@reefmail.co', phone:'(555) 441-0230' },
+    priya: { email:'priya.nair@reefmail.co', phone:'(555) 441-0245' },
+    ravi: { email:'ravi.shah@reefmail.co', phone:'(555) 441-0258' },
+    lena: { email:'lena.vogel@reefmail.co', phone:'(555) 441-0263' },
+    callum: { email:'callum.doyle@reefmail.co', phone:'(555) 441-0277' }
+  };
+
   certIndex(name) {
     const map = {
       'Open Water student': 0,
@@ -1120,11 +1257,21 @@ class Component extends DCLogic {
     if (!d) return;
     const title = d.next.title;
     const first = d.name.split(' ')[0];
+    const g = this.matchingGroup(title);
+    let groups = this.state.groups;
+    if (g && (g.memberIds || []).indexOf(diverId) === -1) {
+      groups = groups.map(function(x) {
+        if (x.id !== g.id) return x;
+        return Object.assign({}, x, { memberIds: x.memberIds.concat([diverId]) });
+      });
+    }
+    const eventBit = g ? (' for ' + g.name) : '';
     const self = this;
     this.setState({
+      groups: groups,
       enrolled: Object.assign({}, this.state.enrolled, { [diverId]: title }),
       menuFor: null,
-      toast: 'Demo: ' + first + ' is enrolled in ' + title + ' — no email sent.'
+      toast: 'Demo: ' + first + ' is enrolled in ' + title + eventBit + ' — no email sent.'
     }, function() {
       self.persistDemo();
       self.maybeThanks();
@@ -1396,6 +1543,15 @@ class Component extends DCLogic {
     }, function() { self.persistDemo(); self.scheduleAccept(diverId); self.maybeThanks(); });
   }
 
+  togglePick(diverId, e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (e && e.preventDefault) e.preventDefault();
+    const gSel = Object.assign({}, this.state.gSel);
+    if (gSel[diverId]) delete gSel[diverId];
+    else gSel[diverId] = true;
+    this.setState({ gSel: gSel });
+  }
+
   openCreateGroupDive(diverId) {
     const d = this.D.find(x => x.id === diverId);
     const sel = {}; sel[diverId] = true;
@@ -1413,13 +1569,35 @@ class Component extends DCLogic {
   }
 
   followUp(diverId) {
+    const d = this.D.find(function(x) { return x.id === diverId; });
+    const first = d ? d.name.split(' ')[0] : 'Diver';
     const now = new Date();
     const label = now.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
     const self = this;
     this.setState({
       followedUpAt: Object.assign({}, this.state.followedUpAt, { [diverId]: label }),
-      menuFor: null
+      menuFor: null,
+      toast: 'Demo: follow-up email queued for ' + first + ' — no email sent.'
     }, function() { self.persistDemo(); self.maybeThanks(); });
+    setTimeout(function() {
+      if (self.state.toast && self.state.toast.indexOf('follow-up email queued') !== -1) self.setState({ toast: null });
+    }, 4000);
+  }
+
+  reachOut(diverId) {
+    const d = this.D.find(function(x) { return x.id === diverId; });
+    const first = d ? d.name.split(' ')[0] : 'Diver';
+    const now = new Date();
+    const label = now.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+    const self = this;
+    this.setState({
+      followedUpAt: Object.assign({}, this.state.followedUpAt, { [diverId]: label }),
+      menuFor: null,
+      toast: 'Demo: reach-out email queued for ' + first + ' — talk about a new goal. No email sent.'
+    }, function() { self.persistDemo(); self.maybeThanks(); });
+    setTimeout(function() {
+      if (self.state.toast && self.state.toast.indexOf('reach-out email queued') !== -1) self.setState({ toast: null });
+    }, 4000);
   }
 
   isDone(id) {
@@ -1445,18 +1623,24 @@ class Component extends DCLogic {
     const enrolledTitle = s.enrolled && s.enrolled[d.id];
     const enrolled = !!enrolledTitle;
     const followedUp = !!(s.followedUpAt && s.followedUpAt[d.id]) && !enrolled;
-    const showEnroll = !enrolled && !followedUp && !d.goalReached;
+    const hasDiveDay = groupOptions.length > 0;
+    const showHero = !enrolled && !followedUp && !d.goalReached;
+    const showReachOut = !!(d.goalReached && !followedUp && !enrolled);
     return Object.assign({}, d, {
       enrolled: enrolled,
       enrollTitle: title,
+      enrollShort: this.enrollShort(title),
       enrollChip: 'Enrolled in ' + this.enrollShort(enrolledTitle || title),
       invitedToGroup: !!(s.invitedToGroup && s.invitedToGroup[d.id]),
       followedUp: followedUp,
       followUpLabel: (s.followedUpAt && s.followedUpAt[d.id]) || '',
-      showEnroll: showEnroll,
-      showInviteMenu: showEnroll,
-      hasMatch: groupOptions.length > 0,
-      noMatch: groupOptions.length === 0,
+      showCreateDiveDay: showHero && !hasDiveDay,
+      showEnroll: showHero && hasDiveDay,
+      showFollowUp: showHero,
+      showReachOut: showReachOut,
+      showInviteMenu: showHero || showReachOut,
+      hasMatch: hasDiveDay,
+      noMatch: !hasDiveDay,
       groupOptions: groupOptions,
       menuOpen: s.menuFor === d.id,
       pending: !!(s.pending && s.pending[d.id]),
@@ -1469,6 +1653,10 @@ class Component extends DCLogic {
       enroll: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); self.enroll(d.id); },
       inviteToGroup: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); self.inviteToGroup(d.id); },
       createGroupDive: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); self.openCreateGroupDive(d.id); },
+      sendFollowUpEmail: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); self.followUp(d.id); },
+      sendReachOutEmail: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); self.reachOut(d.id); },
+      viewDiver: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); self.go('detail', { diverId: d.id, contactFocus: true }); },
+      setGoal: function(e) { if (e && e.stopPropagation) e.stopPropagation(); self.setDiverGoal(d.id, e.target.value); },
       followUp: function(e) { self.dismissSpotlight(); if (e && e.stopPropagation) e.stopPropagation(); self.followUp(d.id); }
     });
   }
@@ -1490,12 +1678,17 @@ class Component extends DCLogic {
       const curLvl = d.nodesDone;
       const pct = goalReached ? 100 : Math.min(100, Math.round((curLvl + d.frac) / goalLvl * 100));
       const nodeCount = goalLvl;
+      const nodeInk = goalReached ? 'var(--path-gold-ink)' : 'var(--color-accent-2-700)';
       const nodes = Array.from({ length: nodeCount }, function(_, j) {
         const p = ((j + 1) / nodeCount) * 100;
         let look;
-        if (j < d.nodesDone || goalReached) look = 'width:15px;height:15px;background:var(--color-accent-2-700);border:2.5px solid var(--color-accent-2-700)';
+        if (j < d.nodesDone || goalReached) look = 'width:15px;height:15px;background:'+nodeInk+';border:2.5px solid '+nodeInk;
         else if (j === d.nodesDone && d.gate) look = 'width:17px;height:17px;background:var(--color-bg);border:2.5px dashed var(--color-accent-600)';
         else look = 'width:15px;height:15px;background:var(--color-bg);border:2.5px solid var(--color-neutral-400)';
+        if (j === nodeCount - 1) {
+          look = look.replace('width:15px;height:15px', 'width:17px;height:17px');
+          look += ';outline:2px solid '+nodeInk+';outline-offset:2px';
+        }
         return { style:'position:absolute;top:50%;transform:translate(-50%,-50%);border-radius:50%;box-sizing:border-box;left:'+p+'%;'+look };
       });
       const segs = Array.from({ length: nodeCount }, function(_, j) {
@@ -1508,7 +1701,7 @@ class Component extends DCLogic {
       const medColor = d.med==='current' ? 'var(--color-accent-2-700)' : 'var(--color-accent-700)';
       const next = Object.assign({}, d.next, { blockers: d.next.blockers.map(b => ({ t: b.t, met: b.met, unmet: !b.met, chip: b.t, chipStyle: 'display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;' + (b.met ? 'background:var(--color-accent-2-200);color:var(--color-accent-2-900)' : 'background:var(--color-bg);border:1.5px dashed var(--color-accent-500);color:var(--color-accent-800)') })) });
       const barLabel = goalReached ? ('Goal reached · ' + d.goal) : (self.shortCert(d.cert) + ' → ' + d.goal);
-      const statusPair = goalReached ? ['Goal reached','tag tag-accent-2'] : meta[d.status];
+      const statusPair = goalReached ? ['Goal reached','tag tag-gold'] : meta[d.status];
       return this.attachInvite(Object.assign({}, d, {
         next,
         goal: d.goal,
@@ -1516,11 +1709,19 @@ class Component extends DCLogic {
         notGoalReached: !goalReached,
         statusLabel: statusPair[0], tagCls: statusPair[1],
         pct, nodes, segs, avBg: av[0], avFg: av[1],
+        barFill: goalReached ? 'var(--path-gold)' : 'var(--color-accent-2-500)',
+        barTrack: goalReached ? 'var(--path-gold-soft)' : 'var(--color-neutral-200)',
+        goalLabelStyle: 'font-size:11px;font-weight:700;flex:none;color:' + (goalReached ? 'var(--path-gold-ink)' : 'var(--color-text)'),
+        goalSelectStyle: 'width:auto;min-width:0;flex:1;min-height:28px;padding:2px 8px;font-size:11.5px;cursor:pointer' + (goalReached ? ';border-color:color-mix(in srgb,var(--path-gold-ink) 40%,var(--color-divider))' : ''),
         gated: !!d.gate, notGated: !d.gate, gateText: d.gate,
         nextTitle: goalReached ? 'Goal reached' : d.next.title,
-        nextGap: goalReached ? 'Set the next certification' : d.next.gap,
+        nextGap: goalReached ? 'Talk about a new goal' : d.next.gap,
         barLabel: barLabel,
+        goalRingCls: 'goal-ring-mark' + (goalReached ? ' is-reached' : ''),
+        goalTagCls: goalReached ? 'tag tag-gold' : 'tag tag-accent-2',
         medStyle: 'font-size:12px;font-weight:600;color:'+medColor,
+        email: (this.CONTACTS[d.id] || {}).email || '',
+        phone: (this.CONTACTS[d.id] || {}).phone || '',
         open: () => this.go('detail', { diverId: d.id }),
         openPath: () => this.go('pathway', { diverId: d.id, focusStep: Math.min(d.nodesDone, 3), specOpen: false })
       }));
@@ -1604,7 +1805,9 @@ class Component extends DCLogic {
       else if (i === 3 && cur.id === 'dex') state = 'locked';
       const focused = s.focusStep === i;
       const ring = {
-        done:'background:var(--color-accent-2-600);border:2.5px solid var(--color-accent-2-600);color:#f0ebd8',
+        done: cur.goalReached
+          ? 'background:var(--path-gold-ink);border:2.5px solid var(--path-gold-ink);color:#f7f0d4'
+          : 'background:var(--color-accent-2-600);border:2.5px solid var(--color-accent-2-600);color:#f0ebd8',
         current:'background:var(--color-accent-100);border:2.5px solid var(--color-accent);color:var(--color-accent-700)',
         next:'background:var(--color-accent);border:2.5px solid var(--color-accent);color:var(--color-bg)',
         locked:'background:var(--color-bg);border:2px dashed var(--color-neutral-400);color:var(--color-neutral-500)',
@@ -1615,8 +1818,8 @@ class Component extends DCLogic {
         isDone: state==='done', isCurrent: state==='current', isNext: state==='next', isLocked: state==='locked' || state==='beyond',
         isGoal: isGoal, isBeyondGoal: isBeyondGoal,
         focused,
-        nodeStyle: 'width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:none;position:relative;z-index:2;' + ring + (isGoal ? ';box-shadow:0 0 0 3px var(--color-accent-2-300)' : ''),
-        cardStyle: 'display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:16px 10px 14px;border-radius:var(--radius-md);cursor:pointer;position:relative;' + (focused ? 'background:var(--color-neutral-100);box-shadow:var(--shadow-sm)' : '') + (isBeyondGoal ? ';opacity:.45' : ''),
+        nodeStyle: 'width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:none;position:relative;z-index:2;' + ring,
+        cardStyle: 'display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:' + (isGoal ? '22px 12px 14px' : '16px 10px 14px') + ';border-radius:var(--radius-md);cursor:pointer;position:relative;' + (focused ? 'background:var(--color-neutral-100);box-shadow:var(--shadow-sm)' : '') + (isBeyondGoal ? ';opacity:.45' : ''),
         nameStyle: 'font-size:13.5px;font-weight:700;line-height:1.25;' + ((state==='locked' || state==='beyond') ? 'color:var(--color-neutral-500)' : ''),
         focus: () => this.setState({ focusStep: focused ? null : i }),
         reqs: this.reqsFor(i, cur).map(r => ({ t:r.t, met:r.met, unmet:!r.met, style:'display:flex;align-items:center;gap:9px;font-size:13px;'+(r.met?'color:var(--color-accent-2-800)':'color:var(--color-accent-700);font-weight:600') })),
@@ -1658,16 +1861,18 @@ class Component extends DCLogic {
         h('rect', { x:c.cx-w/2, y:14, width:w, height:30, rx:15, fill: c.met ? 'var(--color-accent-2-200)' : 'var(--color-bg)', stroke: c.met ? 'none' : 'var(--color-accent-500)', strokeWidth:2, strokeDasharray: c.met ? 'none' : '5 4' }),
         h('text', { x:c.cx, y:34, fontSize:13, fontWeight:700, textAnchor:'middle', fill: c.met ? 'var(--color-accent-2-900)' : 'var(--color-accent-800)', fontFamily:'var(--font-body)' }, c.label)); }),
       h('path', { d: fullD, fill:'none', stroke:'var(--color-neutral-400)', strokeWidth:2.5, strokeDasharray:'2 8', strokeLinecap:'round' }),
-      h('path', { d: solidD, fill:'none', stroke:'var(--color-accent-2-700)', strokeWidth:4, strokeLinecap:'round', strokeLinejoin:'round' }),
-      h('circle', { cx:70, cy:92, r:6, fill:'var(--color-accent-2-700)' }),
+      h('path', { d: solidD, fill:'none', stroke: cur.goalReached ? 'var(--path-gold-ink)' : 'var(--color-accent-2-700)', strokeWidth:4, strokeLinecap:'round', strokeLinejoin:'round' }),
+      h('circle', { cx:70, cy:92, r:6, fill: cur.goalReached ? 'var(--path-gold-ink)' : 'var(--color-accent-2-700)' }),
       h('text', { x:70, y:64, fontSize:11, textAnchor:'middle', fill:'var(--color-neutral-600)', fontFamily:'var(--font-body)' }, 'first splash'),
       ...steps.map((st, i) => { const x = pts[i+1][0], y = pts[i+1][1];
-        const fill = st.isDone ? 'var(--color-accent-2-700)' : st.isNext ? 'var(--color-accent)' : 'var(--color-bg)';
-        const strk = st.isDone ? 'var(--color-accent-2-700)' : (st.isNext || st.isCurrent) ? 'var(--color-accent)' : 'var(--color-neutral-400)';
+        const fill = st.isDone ? (cur.goalReached ? 'var(--path-gold-ink)' : 'var(--color-accent-2-700)') : st.isNext ? 'var(--color-accent)' : 'var(--color-bg)';
+        const strk = st.isDone ? (cur.goalReached ? 'var(--path-gold-ink)' : 'var(--color-accent-2-700)') : (st.isNext || st.isCurrent) ? 'var(--color-accent)' : 'var(--color-neutral-400)';
+        const goalRing = cur.goalReached ? 'var(--path-gold-ink)' : 'var(--color-accent-2-700)';
         const pw = Math.max(st.name.length*8.2, depthLbl[i].length*6.2, st.isGoal ? 48 : 0) + 24;
         return h('g', { key:'n'+i, onClick: st.focus, style:{ cursor:'pointer', opacity: st.isBeyondGoal ? 0.4 : 1 } },
-          st.focused ? h('circle', { cx:x, cy:y, r:23, fill:'none', stroke:'var(--color-accent-400)', strokeWidth:2.5 }) : null,
-          st.isGoal ? h('circle', { cx:x, cy:y, r:22, fill:'none', stroke:'var(--color-accent-2-400)', strokeWidth:3 }) : null,
+          st.focused ? h('circle', { cx:x, cy:y, r:34, fill:'none', stroke:'var(--color-accent-400)', strokeWidth:2.5 }) : null,
+          st.isGoal ? h('circle', { cx:x, cy:y, r:28, fill:'none', stroke: goalRing, strokeWidth:4 }) : null,
+          st.isGoal ? h('text', { x:x, y:y-36, fontSize:11, fontWeight:700, textAnchor:'middle', fill: cur.goalReached ? 'var(--path-gold-ink)' : 'var(--color-accent-2-800)', fontFamily:'var(--font-body)', letterSpacing:'0.08em' }, 'GOAL') : null,
           h('circle', { cx:x, cy:y, r:15, fill: fill, stroke: strk, strokeWidth:2.5, strokeDasharray: st.isLocked ? '4 4' : 'none' }),
           st.isDone ? h('path', { d:'M'+(x-6)+' '+y+' l4.5 5 l8 -9.5', fill:'none', stroke:'#f0ebd8', strokeWidth:3, strokeLinecap:'round', strokeLinejoin:'round' }) : null,
           st.isNext ? h('path', { d:'M'+(x-5)+' '+y+' h10 M'+x+' '+(y-5)+' l5 5 l-5 5', fill:'none', stroke:'var(--color-bg)', strokeWidth:2.5, strokeLinecap:'round', strokeLinejoin:'round' }) : null,
@@ -1785,12 +1990,16 @@ class Component extends DCLogic {
         }
       };
     });
-    const pickPool = s.gCert ? all.filter(d => d.nextTitle === s.gCert) : [];
+    const component = this;
+    const pickPool = s.gCert ? all.filter(d => {
+      const nextCert = (d.next && d.next.title) || d.enrollTitle;
+      return nextCert === s.gCert || !!s.gSel[d.id];
+    }) : [];
     const pickRows = pickPool.map(d => {
       const picked = !!s.gSel[d.id];
       return Object.assign({}, d, { picked,
-        togglePick: () => this.setState({ gSel: Object.assign({}, s.gSel, { [d.id]: !picked }) }),
-        pickStyle: 'display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-md);cursor:pointer;border:1.5px solid ' + (picked ? 'var(--color-accent-500);background:var(--color-accent-100)' : 'var(--color-accent-2-300);background:var(--color-accent-2-100)')
+        togglePick: function(e) { component.togglePick(d.id, e); },
+        pickStyle: 'display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:var(--radius-md);cursor:pointer;font:inherit;color:inherit;text-align:left;border:1.5px solid ' + (picked ? 'var(--color-accent-500);background:var(--color-accent-100)' : 'var(--color-accent-2-300);background:var(--color-accent-2-100)')
       });
     });
     const selDivers = all.filter(d => s.gSel[d.id]);
@@ -1809,15 +2018,30 @@ class Component extends DCLogic {
     const self = this;
     const createGroup = () => {
       if (selCount < 1 || !s.gCert || !s.gDate || !s.gLocation) return;
-      const cert = s.gCert || (selDivers[0] && selDivers[0].nextTitle) || '';
+      const cert = s.gCert || (selDivers[0] && ((selDivers[0].next && selDivers[0].next.title) || selDivers[0].enrollTitle)) || '';
       const name = s.gName.trim() || (cert + ' dive day');
       const ids = selDivers.map(d => d.id);
+      const enrolled = Object.assign({}, s.enrolled);
+      ids.forEach(function(id) { enrolled[id] = cert; });
+      const firsts = ids.map(function(id) {
+        const d = self.D.find(function(x) { return x.id === id; });
+        return d ? d.name.split(' ')[0] : null;
+      }).filter(Boolean);
+      const who = firsts.length === 1 ? firsts[0] : (firsts.length + ' divers');
+      const fromPriority = !!s.gOriginId;
       this.setState({
         groups: s.groups.concat([{ id: 'g' + Date.now(), name: name, date: s.gDate, location: s.gLocation, cert: cert, memberIds: ids }]),
-        gOpen: false, gName: '', gSel: {}, gCert: '', gDate: '', gLocation: '', gOriginId: null, menuFor: null
+        enrolled: enrolled,
+        section: fromPriority ? 'dashboard' : s.section,
+        gOpen: false, gName: '', gSel: {}, gCert: '', gDate: '', gLocation: '', gOriginId: null, menuFor: null,
+        toast: 'Demo: ' + who + ' is enrolled in ' + name + ' — no email sent.'
       }, function() {
         self.persistDemo();
+        self.maybeThanks();
       });
+      setTimeout(function() {
+        if (self.state.toast && self.state.toast.indexOf('is enrolled in') !== -1) self.setState({ toast: null });
+      }, 4000);
     };
 
     const certOptions = this.CERT_TYPES.map(function(name) {
@@ -1845,7 +2069,12 @@ class Component extends DCLogic {
       dismissThanks: () => this.setState({ thanksOpen: false }),
       copyEmail: () => this.copyEmail(),
       copyEmailLabel: s.emailCopied ? 'Copied moore8577@gmail.com' : 'Copy email address',
-      closeMenu: () => { if (s.menuFor) this.setState({ menuFor: null }); },
+      closeMenu: (e) => {
+        if (!s.menuFor) return;
+        const t = e && e.target;
+        if (t && t.closest && t.closest('.invite-wrap')) return;
+        this.setState({ menuFor: null });
+      },
       hasToast: !!s.toast, toastMsg: s.toast || '',
       signIn: () => this.setState({ authed: true, section: 'dashboard', briefOpen: false }),
       signOut: () => this.setState({ authed: false }),
@@ -1877,6 +2106,7 @@ class Component extends DCLogic {
       barSegments: (p.rosterBar ?? 'checkpoints') === 'segments',
       cur, courseFrac, curNoSpecs: cur.specs.length === 0,
       curFirst: cur.name.split(' ')[0],
+      contactCardStyle: 'padding:20px 22px;gap:14px' + (s.contactFocus && cur.id === s.diverId ? ';border:1.5px solid var(--color-accent-2-500);background:var(--color-accent-2-100)' : ''),
       goPrograms: () => this.go('programs'),
       backToRoster: () => this.go('divers'),
       backToDetail: () => this.go('detail'),
