@@ -21,7 +21,7 @@
 <x-dc>
 <helmet data-dc-atomics>
   <link rel="stylesheet" href="assets/organic.css">
-  <script src="https://unpkg.com/@rive-app/webgl2@2.41.0"></script>
+  <script src="https://unpkg.com/@rive-app/webgl2@2.44.0"></script>
   <script src="_ds/organic-11eb9df0-b686-47ab-8578-c326709171ea/_ds_bundle.js"></script>
   <style>
     body{margin:0;background:var(--color-bg);}
@@ -57,9 +57,9 @@
     .thanks-links a{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 14px;border-radius:var(--radius-md);background:var(--color-accent-2-100);text-decoration:none;color:var(--color-accent-2-900);font-weight:700;font-size:14px}
     .thanks-links a:hover{background:var(--color-accent-2-200);color:var(--color-accent-2-800)}
     .thanks-links span{font-weight:600;font-size:12.5px;color:var(--color-accent-2-700)}
-    .login-rive{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;display:block}
+    .login-rive{position:absolute;inset:0;width:100%;height:100%;z-index:1;display:block;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
     .login-screen{
-      --login-water:#87dfee;
+      --login-water:#0e2b47;
       --color-bg:var(--login-water);
       --color-text:var(--color-accent-2-900);
       --color-surface:color-mix(in srgb,#fff 38%,var(--color-accent-2-100));
@@ -69,11 +69,12 @@
       --shadow-lg:0 16px 40px color-mix(in srgb,var(--color-accent-2-900) 28%,transparent);
       position:relative;min-height:100vh;overflow:hidden;background:var(--color-bg);color:var(--color-text)
     }
-    .login-deco{position:absolute;top:7vh;right:9vw;width:88px;height:88px;border-radius:50%;background:color-mix(in srgb,#fff 42%,var(--login-water))}
     .login-copy{position:relative;z-index:2;max-width:460px;padding:11vh 0 0 8vw}
+    .login-copy > h1,.login-copy > p,.login-brand-name{color:#f0ebd8;text-shadow:0 2px 14px color-mix(in srgb,#051923 55%,transparent)}
+    .login-copy > p.text-muted{color:color-mix(in srgb,#f0ebd8 84%,transparent)}
     .login-screen .text-muted{color:var(--color-accent-2-700)}
     .login-screen .input{background:color-mix(in srgb,#fff 46%,var(--color-surface))}
-    .login-screen .card{border:1px solid color-mix(in srgb,#fff 50%,var(--login-water))}
+    .login-screen .card{border:1px solid color-mix(in srgb,#fff 55%,transparent)}
     .login-screen .btn-primary{background:var(--color-accent-2-700);color:#f0ebd8}
     .login-screen .btn-primary:hover{background:var(--color-accent-2-800)}
     .login-screen .btn-primary:active{background:var(--color-accent-2-900)}
@@ -84,14 +85,13 @@
 
 <sc-if value="{{ showLogin }}" hint-placeholder-val="{{ true }}">
 <div class="login-screen" data-screen-label="Login">
-  <div class="login-deco" aria-hidden="true"></div>
   <div class="login-copy">
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:26px">
       <div style="width:52px;height:52px;border-radius:50%;background:var(--color-accent-2-700);display:flex;align-items:center;justify-content:center;flex:none">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f0ebd8" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>
       </div>
       <div>
-        <div style="font-family:var(--font-heading);font-size:24px;line-height:1.1">Reef Runners Dive Co.</div>
+        <div class="login-brand-name" style="font-family:var(--font-heading);font-size:24px;line-height:1.1">Reef Runners Dive Co.</div>
         <span class="tag tag-accent-2" style="margin-top:5px">PADI Five Star Dive Center</span>
       </div>
     </div>
@@ -1405,19 +1405,24 @@ class Component extends DCLogic {
     }
     if (this._riveRetry) { clearTimeout(this._riveRetry); this._riveRetry = null; }
     const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // The ocean scene (rive-ocean repo): scripted and signed. Fit.Layout resizes
+    // the artboard to the canvas so the reef refits any viewport; listeners stay
+    // on for click-to-scatter, hold-to-swim-up and parallax. autoBind supplies
+    // the view model the scripts drive the fish through.
     this._rive = new api.Rive({
-      src: 'assets/fishies.riv',
+      src: 'assets/ocean.riv',
       canvas: canvas,
-      autoplay: !reduceMotion,
+      autoplay: true,
       autoBind: true,
       stateMachine: 'State Machine 1',
-      shouldDisableRiveListeners: true,
-      layout: new api.Layout({
-        fit: api.Fit.FitWidth,
-        alignment: api.Alignment.BottomCenter
-      }),
+      layout: new api.Layout({ fit: api.Fit.Layout }),
       onLoad: function() {
-        if (self._rive) self._rive.resizeDrawingSurfaceToCanvas();
+        if (!self._rive) return;
+        self._rive.resizeDrawingSurfaceToCanvas();
+        // Reduced motion: let the scripts place every fish, then hold a still frame.
+        if (reduceMotion) {
+          self._riveStill = setTimeout(function() { if (self._rive) self._rive.pause(); }, 500);
+        }
       }
     });
     this._riveResize = function() {
@@ -1428,6 +1433,7 @@ class Component extends DCLogic {
 
   stopLoginRive() {
     if (this._riveRetry) { clearTimeout(this._riveRetry); this._riveRetry = null; }
+    if (this._riveStill) { clearTimeout(this._riveStill); this._riveStill = null; }
     if (this._riveResize) {
       window.removeEventListener('resize', this._riveResize);
       this._riveResize = null;
